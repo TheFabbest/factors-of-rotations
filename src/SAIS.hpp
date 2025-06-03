@@ -120,7 +120,7 @@ void guessLMS_Sort(const char* input, const unsigned long length, unsigned long 
 
     // Initialize SA with -1
     fill_n(guessed_SA, length+1, (unsigned long)-1);
-
+    
     // Sort LMS characters
     for (unsigned long i = 0; i < length; ++i) {
         if (isLMS(i, typeArray)) {
@@ -130,7 +130,6 @@ void guessLMS_Sort(const char* input, const unsigned long length, unsigned long 
         }
     }
     guessed_SA[0] = length;
-
     delete[] bucket_tails;
 }
 
@@ -279,12 +278,13 @@ unsigned long* SAIS(const char* input, const unsigned long length, const unsigne
     guessLMS_Sort(input, length, guessed_SA, bucket_sizes, typeArray, alphabet_size, mapping);
     induceSortLType(input, guessed_SA, bucket_sizes, typeArray, alphabet_size, mapping);
     induceSortSType(input, guessed_SA, bucket_sizes, typeArray, alphabet_size, mapping);
-    
+
     // summarise
     string summaryString;
     unsigned long new_alphabet_size;
     unsigned long *summarySuffixOffset;
     summariseSuffixArray(input, guessed_SA, new_alphabet_size, typeArray, &summarySuffixOffset, summaryString, min_char, mapping);
+
     unsigned long *summary_SA = makeSummarySuffixArray(summaryString, new_alphabet_size, mapping);
     
     // accurate sort based on summary

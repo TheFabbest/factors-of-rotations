@@ -3,7 +3,7 @@
 
 // booth's algorithm, see more efficient and O(1) space "Shiloach's Fast Canonization Algorithm"
 unsigned long least_rotation(const char* const word, const unsigned long length){
-    long f [2*length] = {-1};
+    long *f = new long [2*length] {-1};
     unsigned long k = 0;
     for (unsigned long j = 1; j < 2*length; ++j)
     {
@@ -26,7 +26,8 @@ unsigned long least_rotation(const char* const word, const unsigned long length)
             f[j - k] = i + 1;
         }
     }
-        
+    
+    delete[] f;
     return k;
 }
 

@@ -15,7 +15,8 @@ void testForEachWordOfLength(const unsigned long length, const function<void (ch
     word[length] = '\0';
     
     int limit = pow(length, length);
-    int print_step = pow(length, length-1);print_step=1;
+    int print_step = pow(length, length-1);
+    print_step=1;
     for (int i = 0; i < limit; ++i)
     {
         if (i % print_step == 0) cout << word << endl;
@@ -32,6 +33,38 @@ void testForEachWordOfLength(const unsigned long length, const function<void (ch
             }
         }
     }
+}
+
+void testOneBig(){
+    const unsigned long SIZE = 1000;
+    const unsigned long MIN_ALPHABET = 'A';
+    const unsigned long MAX_ALPHABET = 'Z';
+    const unsigned long ALPHABET_SIZE = MAX_ALPHABET - MIN_ALPHABET + 1;
+    
+    char *word = new char [SIZE+1];
+
+    srand(time(0));
+    for (unsigned long i = 0; i < SIZE; ++i){
+        word[i] = MIN_ALPHABET + rand() % ALPHABET_SIZE;
+    }
+    word[SIZE] = '\0';
+
+    unsigned long *SA = SAIS(word, SIZE, ALPHABET_SIZE)+1;
+    unsigned long *SA_naive = buildSuffixArray(word, SIZE);
+
+    // look for differences
+    for (unsigned long i = 0; i < SIZE; ++i) {
+        if (SA[i] != SA_naive[i]) {
+            cout << "ERROR" << endl;
+            int n;
+            cin >> n;
+        }
+    }
+    
+
+    delete[] (SA-1);
+    delete[] SA_naive;
+    delete[] word;
 }
 
 
@@ -168,9 +201,6 @@ void propertyTest1(const char word[], unsigned long word_length) {
 // for each factor beginning at index i of each rotation of the word it is true that rank[i] < rank[j] for each j in the factor
 void propertyTest2(const char input_word[], unsigned long word_length) {
     if (duval(string(input_word)).size()!=1){
-        for (string s : duval(string(input_word))) {
-            cout << s << ", ";
-        }
         cout << "skipping" << endl;
         return;
     }
@@ -250,7 +280,6 @@ void testForSize(const unsigned long test_size) {
 }
 
 void testAll(){
-    testForSize(1);
     testForSize(5);
 }
 

@@ -1,0 +1,6 @@
+- [ ] implement the optimal algorithm instead of SA-IS
+- [ ] dynamically set the block-size (currently fixed at 256, for char) and consequently fix for longer strings
+- [ ] use Shiloach's Fast Canonization Algorithm instead of Booth's
+- [ ] find a better algorithm that identifies periodic words
+- [ ] replace "string" with C-style char arrays (char*)
+- [ ] better testing

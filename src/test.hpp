@@ -9,7 +9,7 @@
 
 void testForEachWordOfLength(const unsigned long length, const function<void (char[], unsigned long)> func) {
     char word[length+1];
-    for (int i = 0; i < length; ++i) {
+    for (unsigned long i = 0; i < length; ++i) {
         word[i] = 'A';
     }
     word[length] = '\0';
@@ -107,10 +107,9 @@ void testFactorsLynS(const char input_word[], const unsigned long word_length) {
 
     Node* roots[word_length];
     Node* leftTree = LeftLyndonTree(word, word_length, LynS, roots);
-
+    
     vector<Node*> factors_in_prefixes;
     LeftChildren(leftTree, factors_in_prefixes);
-
     string factors_from_left_tree = "";
     for (Node* factor: factors_in_prefixes) {
         factors_from_left_tree += factor->ToString("");
@@ -118,8 +117,8 @@ void testFactorsLynS(const char input_word[], const unsigned long word_length) {
     }
     
     string factors_from_lynS = "";
-    for (int i = 0; i < word_length-1; ++i) {
-        int len = LynS[i];
+    for (unsigned long i = 0; i < word_length-1; ++i) {
+        unsigned long len = LynS[i];
         for (int j = i-len+1; j <= i; ++j) {
             factors_from_lynS += word[j];
         }
@@ -237,13 +236,22 @@ void testSAIS(const char input_word[], unsigned long word_length) {
     delete[] SA_naive;
 }
 
-void testAll(){
-    const int test_size = 5;
+void testForSize(const unsigned long test_size) {
+    cout << "testFactorsLyn" << endl;
     testForEachWordOfLength(test_size, testFactorsLyn);
+    cout << "testFactorsLynS" << endl;
     testForEachWordOfLength(test_size, testFactorsLynS);
+    cout << "propertyTest1" << endl;
     testForEachWordOfLength(test_size, propertyTest1);
+    cout << "propertyTest2" << endl;
     testForEachWordOfLength(test_size, propertyTest2);
+    cout << "testSAIS" << endl;
     testForEachWordOfLength(test_size, testSAIS);
+}
+
+void testAll(){
+    testForSize(1);
+    testForSize(5);
 }
 
 #endif

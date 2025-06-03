@@ -120,10 +120,9 @@ void RightChildren(const Node* tree, vector<Node*> &output) {
 // tutti i fattori di Lyndon che appariranno nelle fattorizzazioni dei prefissi
 void LeftChildren(const Node* tree, vector<Node*> &output) {
     if (tree == nullptr) return;
-    
-    LeftChildren(tree->left, output);
 
     if (tree->left != nullptr) {
+        LeftChildren(tree->left, output);
         output.push_back(tree->left);
     }
 
@@ -135,8 +134,8 @@ Node* LeftLyndonTree(const char* const word, const unsigned long length, unsigne
     LynS[0] = 1;
     unsigned long per = 1;
     unsigned long index_for_comparison = 0;
-    Node *q;
     roots[0] = new Node(word[0]);
+    Node *q = roots[0];
     for (unsigned long j = 1; j < length; ++j){
         roots[j] = new Node(word[j]);
         if (word[j] != word[index_for_comparison]) {

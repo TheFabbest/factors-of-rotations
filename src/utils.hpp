@@ -67,7 +67,7 @@ void PrintAllFactorsNaive(const char *input_word, const unsigned long word_lengt
     cout << endl;
 }
 
-void PrintAllFactors(const char *input_word, const unsigned long word_length) {
+void PrintAllFactors(const char * const input_word, const unsigned long word_length) {
     // find smallest rotation
     char word[word_length+1];
     const unsigned long rot = least_rotation(input_word, word_length);

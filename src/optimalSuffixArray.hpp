@@ -3,6 +3,11 @@
 
 #include <algorithm>
 
+#define BT (unsigned long) -1
+#define BH (unsigned long) -2
+#define E (unsigned long) -3
+
+
 // ----- auxiliary functions
 
 int compareSuffixes(const char * const input, const unsigned long length, const unsigned long offsetA, const unsigned long offsetB) {
@@ -43,6 +48,25 @@ void BuildHeap(unsigned long *array, unsigned long n){
     }
 }
 
+// modified binary search that returns the first occurrence of the value
+unsigned long binary_search(const unsigned long *array, const unsigned long length, const unsigned long value) {
+    unsigned long left = 0;
+    unsigned long right = length - 1;
+    while (right > left)
+    {
+        const unsigned long mid = left + ((right-left) / 2);
+
+        if (array[mid] > value)
+        {
+            right = mid;
+        }
+        else
+        {
+            left = mid + 1;
+        }
+    }
+}
+
 // end of auxiliary functions -----
 
 // section 5.2 - step 1
@@ -77,6 +101,7 @@ void mergeSortS_Substrings(const char * const input, const unsigned long length,
                        });
             std::copy(auxiliary, auxiliary + (i + step - nS), array + i);
         }
+        step *= 2;
     }
 }
 
@@ -142,5 +167,71 @@ void preprocess(const char * const input, unsigned long *SA, const unsigned long
     // TODO
     //Then, we sort SA[0 ... n − 1] (the sorting key of SA[i] is T [SA[i]] i.e., the ﬁrst character of suf(SA[i]))
     // using the mergesort, with the merging step implemented by the stable, in-place, linear time merging algorithm
+    
+    unsigned long step = 2;
+    while (step < length - nS) {
+        for (unsigned long i = nS; i < length; i += step) {
+            unsigned long mid = i + step / 2;
+            std::inplace_merge(SA + i, SA + mid, SA + i + step, 
+                           [input, length](unsigned long a, unsigned long b) {
+                               return input[a] < input[b];
+                           });
+        }
+        step *= 2;
+    }
+}
+
+// section 5.5 - step 1
+void initializeSA(const char * const input, unsigned long *SA, const unsigned long length) {
+    
+    // we scan T from right to left
+    bool nextIsL = true;
+    for (unsigned long i = 0; i < length-1; ++i) {
+        const unsigned long index = length - i - 2;
+        const bool currentIsL = input[index] > input[index+1] || (nextIsL && input[index] == input[index+1]);
+        
+        // for each scanning character T[i] which is L_TYPE, if bucket T[i] has not been initialized yet, we initialize it
+        if (currentIsL) {
+            
+            //Let l denote the head of bucket T [i ] in SA (i.e. l is the smallest index in SA such that T [SA[l]] = T [i])
+            // We can ﬁnd l by searching T [i ] in SA (the search key for SA[i ] is T [SA[i ]]) using binary search.
+
+            const unsigned long l = binary_search(SA, length, input[index]);
+
+            if (SA[l+1] == BH || SA[l+1] == BT) {
+                // if the bucket is already initialized, we skip it
+                continue;
+            }
+
+            // we let rL denote the tail of L-suﬃxes in this bucket (i.e., rL is the largest index in SA such
+            // that T[SA[rL]] = T[i] and T[SA[rL]] is L-type).
+            unsigned long rL = l;
+            while (SA[rL] != index) {
+                ++rL;
+            }
+            
+            
+            // Note that nL = rL - l + 1. Hence, it suﬃces to compute l and rL.
+
+            const unsigned long nL = rL - l + 1;
+            if (nL == 2) {
+                SA[l+1] = BT;
+            }
+            else if (nL == 3) {
+                SA[l+1] = BH;
+                SA[l+2] = BT;
+            }
+            else if (nL > 3) {
+                SA[l + 1] = BH;
+                SA[l + 2] = E;
+                SA[l + nL - 1] = BT;
+            }
+        }
+        nextIsL = currentIsL;
+    }
+}
+
+// section 5.5 - step 2
+void sortL(const char * const input, unsigned long *SA, const unsigned long length) {
 
 }

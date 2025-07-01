@@ -6,6 +6,7 @@
 #include "SAIS.hpp"
 #include "utils.hpp"
 #include "naiveSuffix.hpp"
+#include "optimalSuffixArray.hpp"
 
 void testForEachWordOfLength(const unsigned long length, const function<void (char[], unsigned long)> func) {
     char word[length+1];
@@ -266,6 +267,41 @@ void testSAIS(const char input_word[], unsigned long word_length) {
     delete[] SA_naive;
 }
 
+void testOptimalSuffixArray(const char input_word[], const unsigned long word_length) {
+
+    // get alphabet size
+    const unsigned long alphabet_size = getAlphabetSize(input_word, word_length);
+
+    // calculate suffix array naively
+    unsigned long *SA_optimal = new unsigned long[word_length+1];
+    optimalSuffixArray(input_word, SA_optimal, word_length);
+
+    // calculate SAIS
+    unsigned long *SA = SAIS(input_word, word_length, alphabet_size)+1;
+
+    // look for differences
+    for (unsigned long i = 0; i < word_length; ++i) {
+        if (SA[i] != SA_optimal[i]) {
+            cout << "-------------------------" << endl;
+            cout << "ERROR: " << input_word << endl;
+            cout << "SA[" << i << "] = " << SA[i] << ", SA_optimal[" << i << "] = " << SA_optimal[i] << endl;
+            for (unsigned long j = 0; j < word_length; ++j) {
+                cout << SA[j] << " ";
+            }
+            cout << endl;
+            for (unsigned long j = 0; j < word_length; ++j) {
+                cout << SA_optimal[j] << " ";
+            }
+            cout << endl;
+            int n;
+            cin >> n;
+        }
+    }
+
+    delete[] (SA-1);
+    delete[] SA_optimal;
+}
+
 void testForSize(const unsigned long test_size) {
     cout << "testFactorsLyn" << endl;
     testForEachWordOfLength(test_size, testFactorsLyn);
@@ -277,6 +313,8 @@ void testForSize(const unsigned long test_size) {
     testForEachWordOfLength(test_size, propertyTest2);
     cout << "testSAIS" << endl;
     testForEachWordOfLength(test_size, testSAIS);
+    cout << "testOptimalSuffixArray" << endl;
+    testForEachWordOfLength(test_size, testOptimalSuffixArray);
 }
 
 void testAll(){

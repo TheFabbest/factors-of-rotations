@@ -275,9 +275,11 @@ void testOptimalSuffixArray(const char input_word[], const unsigned long word_le
     // calculate suffix array naively
     unsigned long *SA_optimal = new unsigned long[word_length+1];
     optimalSuffixArray(input_word, SA_optimal, word_length);
-
-    // calculate SAIS
-    unsigned long *SA = SAIS(input_word, word_length, alphabet_size)+1;
+    SA_optimal += 1;
+    cout << "Optimal Suffix Array for " << input_word << " is done." << endl;
+    
+    // calculate naively
+    unsigned long *SA = buildSuffixArray(input_word, word_length);
 
     // look for differences
     for (unsigned long i = 0; i < word_length; ++i) {
@@ -297,9 +299,10 @@ void testOptimalSuffixArray(const char input_word[], const unsigned long word_le
             cin >> n;
         }
     }
+    cout << "Optimal Suffix Array for " << input_word << " is correct." << endl;
 
-    delete[] (SA-1);
-    delete[] SA_optimal;
+    delete[] SA;
+    delete[] (SA_optimal-1);
 }
 
 void testForSize(const unsigned long test_size) {

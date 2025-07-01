@@ -22,7 +22,7 @@ int compareSuffixes(const char * const input, const unsigned long length, const 
         }
         ++i;
     }
-    return 0; // equal suffixes
+    return 0;
 }
 
 void Heapify(unsigned long *array, unsigned long n, unsigned long index) {
@@ -93,17 +93,18 @@ unsigned long placeIndicesOfS_Type(const char * const input, const unsigned long
 void mergeSortS_Substrings(const char * const input, const unsigned long length, unsigned long *SA, const unsigned long nS) {
     // merge sort SA[nS, length-1] using SA[0, nS-1] as the auxiliary array, thus O(1) space
     unsigned long *auxiliary = SA;
-    unsigned long *array = SA + nS;
+    unsigned long *array = SA + length - nS;
 
     unsigned long step = 2;
-    while (step < length - nS) {
-        for (unsigned long i = nS; i < length; i += step) {
+    while (step <= nS) {
+        for (unsigned long i = 0; i < nS; i += step) {
             unsigned long mid = i + step / 2;
-            std::merge(array + i, array + mid, array + mid, array + i + step, auxiliary, 
-                       [input, length](unsigned long a, unsigned long b) {
+            unsigned long end = std::min(i + step, nS);
+            std::merge(array + i, array + mid, array + mid, array + end, auxiliary, 
+                       [input, length](const unsigned long a, const unsigned long b) {
                            return compareSuffixes(input, length, a, b) < 0;
                        });
-            std::copy(auxiliary, auxiliary + (i + step - nS), array + i);
+            std::copy(auxiliary, auxiliary + (end - i), array + i);
         }
         step *= 2;
     }
@@ -122,7 +123,7 @@ void constructReducedProblem(const char * const input, const unsigned long lengt
                 break;
             }
         }
-        SA[i - length - nS] = currentChar;
+        SA[i - length + nS] = currentChar;
     }
 }
 
@@ -249,7 +250,7 @@ void initializeSA(const char * const input, unsigned long *SA, const unsigned lo
 void sortL(const char * const input, unsigned long *SA, const unsigned long length) {
     for (unsigned long l = 0; l < length; ++l) {
         const unsigned long j = SA[l] - 1;
-
+        printf("l = %lu, j = %lu, SA[l] = %lu\n", l, j, SA[l]);
         // skip S type suffixes, this does not cover case 4 (but is always true for case 4)
         if (input[j] < input[j+1] || (input[j] == input[j+1] && (SA[l+2] == E || SA[l+2] == 0)))
         {
@@ -363,5 +364,5 @@ void optimalSuffixArray(const char * const input, unsigned long *SA, const unsig
 
     // step 8
     sortL(input, SA, length);
-    printf("Sorted L-type suffixes.");
+    printf("Sorted L-type suffixes.\n");
 }

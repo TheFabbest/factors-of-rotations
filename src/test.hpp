@@ -269,6 +269,14 @@ void testSAIS(const char input_word[], unsigned long word_length) {
 
 void testOptimalSuffixArray(const char input_word[], const unsigned long word_length) {
 
+    bool *typeArray = new bool[word_length+1];
+    buildTypeArray(input_word, word_length, typeArray);
+    cout << "Type array for " << input_word << " is done." << endl;
+    for (unsigned long i = 0; i < word_length; ++i) {
+        cout << (typeArray[i] ? 'S' : 'L');
+    }
+    cout << endl;
+
     // get alphabet size
     const unsigned long alphabet_size = getAlphabetSize(input_word, word_length);
 

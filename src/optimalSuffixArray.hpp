@@ -5,24 +5,38 @@
 #include <iostream>
 using namespace std;
 
-#define BT (unsigned long) -1
-#define BH (unsigned long) -2
-#define E (unsigned long) -3
-#define R1 (unsigned long) -4
-#define R2 (unsigned long) -5
+#define BT -1UL
+#define BH -2UL
+#define E -3UL
+#define R1 -4UL
+#define R2 -5UL
+#define MAX_CHAR -6UL
 
 
 // ----- auxiliary functions
 
-int compareSuffixes(const char * const input, const unsigned long length, const unsigned long offsetA, const unsigned long offsetB) {
-    unsigned long i = 0;
-    while (i < length) {
-        if (input[offsetA + i] != input[offsetB + i]) {
-            return input[offsetA + i] - input[offsetB + i];
+/* obtains the length of substrings from observation 2 from the paper:
+    For any index i of T, let j ∈[i +1, n −1] be the smallest index such that T[j] < T[j +1] (So T[j] is S-type). 
+    Furthermore let k ∈[i + 1, j] be the smallest index such that T[l] = T[j] for any k ≤ l ≤ j. Then T[k] is the first S-type 
+    character after index i. Moreover, all characters between T[i] and T[k] are L-type, and characters between T[k] and T[j] are 
+    S-type.
+*/
+int compareS_substrings(const char * const input, unsigned long offsetA, unsigned long offsetB, const unsigned long endA, const unsigned long endB) {
+    
+    while (offsetA != endA && offsetB != endB) {
+        if (input[offsetA] != input[offsetB]) {
+            return input[offsetA] - input[offsetB];
         }
-        ++i;
     }
-    return 0;
+    if (offsetA == endA && offsetB == endB) {
+        return 0; // equal
+    }
+    else if (offsetA == endA) {
+        return -1; // A is a prefix of B
+    }
+    else {
+        return 1; // B is a prefix of A
+    }
 }
 
 void Heapify(unsigned long *array, unsigned long n, unsigned long index) {
@@ -74,6 +88,9 @@ unsigned long binary_search(const char * const input, const unsigned long *array
 // end of auxiliary functions -----
 
 // section 5.2 - step 1
+// find S suffixes and put indexes in SA[length-nS, length-1]
+// returns the number of S-type suffixes found (nS)
+// correct for test AABBABAB
 unsigned long placeIndicesOfS_Type(const char * const input, const unsigned long length, unsigned long *SA) {
     bool nextIsL = true; // last character is always L_TYPE because of the sentinel at the end (which is S_TYPE)
     unsigned long last_inserted_index = length;
@@ -81,6 +98,7 @@ unsigned long placeIndicesOfS_Type(const char * const input, const unsigned long
         const unsigned long index = length - i - 2;
         const bool currentIsL = input[index] > input[index+1] || (nextIsL && input[index] == input[index+1]);
         if (!currentIsL) {
+            cout << "Inserting S-type suffix of index " << index << " in " << last_inserted_index-1 << endl;
             SA[--last_inserted_index] = index;
         }
         nextIsL = currentIsL;
@@ -90,6 +108,10 @@ unsigned long placeIndicesOfS_Type(const char * const input, const unsigned long
 }
 
 // section 5.2 - step 2
+// correct for test AABBABAB
+// sorts the S-type suffixes in SA[length-nS, length-1] using merge sort
+// the comparison function compares suffixes by their lexicographic order
+// according to this ordering, a word is always bigger than its prefixes
 void mergeSortS_Substrings(const char * const input, const unsigned long length, unsigned long *SA, const unsigned long nS) {
     // merge sort SA[nS, length-1] using SA[0, nS-1] as the auxiliary array, thus O(1) space
     unsigned long *auxiliary = SA;
@@ -101,8 +123,8 @@ void mergeSortS_Substrings(const char * const input, const unsigned long length,
             unsigned long mid = i + step / 2;
             unsigned long end = std::min(i + step, nS);
             std::merge(array + i, array + mid, array + mid, array + end, auxiliary, 
-                       [input, length](const unsigned long a, const unsigned long b) {
-                           return compareSuffixes(input, length, a, b) < 0;
+                       [input, length](const unsigned long &a, const unsigned long &b) {
+                           return compareS_substrings(input, a, b, /* TODO */) < 0;
                        });
             std::copy(auxiliary, auxiliary + (end - i), array + i);
         }
@@ -111,17 +133,19 @@ void mergeSortS_Substrings(const char * const input, const unsigned long length,
 }
 
 // section 5.3 - step 1
+// this renames the s-substrings by their ranks.
+// since the s-substrings are sorted, if they are equal, they have the same rank,
+//  otherwise, the one on the right comes immediately after (rank_2 = rank_1 + 1).
+// maybe this could be done together with the merge sort?
+// note: the paper does not specify how to "remember" substrings length. My solution is to
+// process the input from the end, starting with the highest representable character.
 void constructReducedProblem(const char * const input, const unsigned long length, unsigned long *SA, const unsigned long nS) {
     char currentChar = 0;
     SA[0] = currentChar;
 
     for (unsigned long i = length - nS + 1; i < length; ++i) {
-        // TODO inefficient ?
-        for (unsigned long iter = 0; iter < SA[i] - SA[i-1]; ++iter) {
-            if (input[SA[i] + iter] != input[SA[i-1] + iter]) {
-                ++currentChar;
-                break;
-            }
+        if (compareS_substrings(input, i-1, i, ) != 0) {
+            ++currentChar;
         }
         SA[i - length + nS] = currentChar;
     }
@@ -252,27 +276,35 @@ void sortL(const char * const input, unsigned long *SA, const unsigned long leng
         const unsigned long j = SA[l] - 1;
         printf("l = %lu, j = %lu, SA[l] = %lu\n", l, j, SA[l]);
         // skip S type suffixes, this does not cover case 4 (but is always true for case 4)
-        if (input[j] < input[j+1] || (input[j] == input[j+1] && (SA[l+2] == E || SA[l+2] == 0)))
-        {
-            continue;
+        if (j != BT && j != BH && j != E && j != R1 && j != R2) {
+            if (input[j] < input[j+1] || (input[j] == input[j+1] && (SA[l+2] == E || SA[l+2] == 0)))
+            {
+                cout << "Skipping L-type suffix at index " << l << " because it is not L-type." << endl;
+                continue;
+            }
         }
 
         if (SA[l+1] == BH) {
             if (SA[l+2] == E) {
                 SA[l] = j;
                 SA[l+2] = 1; // counter for the number of L-type suffixes put so far
+                
+                printf("case 1, initialized SA[%lu] = %lu, SA[%lu%] = 1\n", l, j, l + 2);
             }
             else {
                 const unsigned long c = SA[l+2];
                 if (SA[l+c+2] == j != BT) {
                     SA[l + c + 2] = j;
                     SA[l + 2] = c + 1;
+                    printf("case 2 (1), initialized SA[%lu] = %lu, SA[%lu] = %lu\n", l + c + 2, j, l + 2, c + 1);
                 }
                 else {
                     const unsigned long rL = l + 3 + c;
                     std::move(SA + l + 3, SA + rL - 1, SA + l + 2);
                     SA[rL - 1] = j;
                     SA[l + 1] = R2;
+                    printf("case 2 (2), moved SA[%lu] to SA[%lu], initialized SA[%lu] = %lu, SA[%lu] = %lu\n", 
+                           l + 3, l + 2, rL - 1, j, l + 1, R2);
                 }
             }
         }
@@ -284,6 +316,8 @@ void sortL(const char * const input, unsigned long *SA, const unsigned long leng
             std::move(SA + l + 2, SA + rL - 1, SA + l + 1);
             SA[rL - 1] = j;
             SA[rL] = R1;
+            printf("case 3, moved SA[%lu] to SA[%lu], initialized SA[%lu] = %lu, SA[%lu] = %lu\n", 
+                   l + 2, l + 1, rL - 1, j, rL, R1);
         }
         else {
             unsigned long rL = l + 2;
@@ -298,6 +332,10 @@ void sortL(const char * const input, unsigned long *SA, const unsigned long leng
             }
             if (rL != length) {
                 SA[rL] = j;
+                printf("case 4, initialized SA[%lu] = %lu\n", rL, j);
+            }
+            else {
+                printf("case 4, no R1 found, skipping.\n");
             }
         }
     }

@@ -61,38 +61,31 @@ int compareS_substrings(const char * const input, unsigned long offsetA, unsigne
     }
 }
 
-void Heapify(unsigned long *array, unsigned long n, unsigned long index) {
+void Heapify(unsigned long *SA, unsigned long *array, unsigned long length, unsigned long index) {
     while (true) {
-        unsigned long smallest = index;
+        unsigned long biggest = index;
         const unsigned long left = 2 * index + 1;
         const unsigned long right = 2 * index + 2;
-        if (left < n && array[left] < array[smallest]) {
-            smallest = left;
+        if (left < length && array[left] > array[biggest]) {
+            biggest = left;
         }
-        if (right < n && array[right] < array[smallest]) {
-            smallest = right;
+        if (right < length && array[right] > array[biggest]) {
+            biggest = right;
         }
-        if (smallest != index) {
-            std::swap(array[index], array[smallest]);
-            index = smallest;
+        if (biggest != index) {
+            std::swap(array[index], array[biggest]);
+            std::swap(SA[index], SA[biggest]);
+            index = biggest;
         } else {
             break; // heap property is satisfied
         }
     }
 }
 
-void BuildHeap(unsigned long *array, const unsigned long n){
-    for (unsigned long i = n/2; i > 0; --i) {
+void BuildHeap(unsigned long *SA, const unsigned long length, const unsigned long nS) {
+    for (unsigned long i = nS/2; i > 0; --i) {
         const unsigned long index = i - 1;
-        Heapify(array, n, index);
-    }
-}
-
-void HeapSort(unsigned long *array, const unsigned long n) {
-    BuildHeap(array, n);
-    for (unsigned long i = n - 1; i > 0; --i) {
-        std::swap(array[0], array[i]);
-        Heapify(array, i, 0);
+        Heapify(SA, SA+length-nS, nS, index);
     }
 }
 
@@ -183,8 +176,18 @@ void constructReducedProblem(const char * const input, const unsigned long lengt
 
 
 // section 5.3 - step 2
-void heapSortReducedProblem(unsigned long *SA, unsigned long length, const unsigned long nS) {
-    HeapSort(SA + length - nS, nS);
+// sorts the reduced problem using heap sort
+// the reduced problem is stored in SA[length-nS, length-1]
+// when swapping elements, we also swap the corresponding indices in SA[0, nS-1]
+// correct for test AABBABAB
+void heapSortReducedProblem(unsigned long *SA, const unsigned long length, const unsigned long nS) {
+    BuildHeap(SA, length, nS);
+    unsigned long *array = SA + length - nS;
+    for (unsigned long i = nS - 1; i > 0; --i) {
+        std::swap(array[0], array[i]);
+        std::swap(SA[0], SA[i]);
+        Heapify(SA, array, i, 0);
+    }
 }
 
 // section 5.4
@@ -315,7 +318,7 @@ void sortL(const char * const input, unsigned long *SA, const unsigned long leng
                 SA[l] = j;
                 SA[l+2] = 1; // counter for the number of L-type suffixes put so far
                 
-                printf("case 1, initialized SA[%lu] = %lu, SA[%lu%] = 1\n", l, j, l + 2);
+                printf("case 1, initialized SA[%lu] = %lu, SA[%lu] = 1\n", l, j, l + 2);
             }
             else {
                 const unsigned long c = SA[l+2];

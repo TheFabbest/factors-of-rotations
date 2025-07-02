@@ -110,6 +110,8 @@ unsigned long binary_search(const char * const input, const unsigned long *array
 
 // end of auxiliary functions -----
 
+void optimalSuffixArray(const char * const input, unsigned long *SA, const unsigned long length);
+
 // section 5.2 - step 1
 // find S suffixes and put indexes in SA[length-nS, length-1]
 // returns the number of S-type suffixes found (nS)
@@ -192,6 +194,10 @@ void heapSortReducedProblem(unsigned long *SA, const unsigned long length, const
 
 // section 5.4
 void RestoreFromRecursion(const char * const input, const unsigned long length, unsigned long *SA, const unsigned long nS) {
+    // recursion
+    optimalSuffixArray(input, SA+length-nS, length - nS);
+
+    // restore
     bool nextIsL = true;
     unsigned long sum = 0;
     for (unsigned long i = 0; i < length-1; ++i) {
@@ -204,7 +210,7 @@ void RestoreFromRecursion(const char * const input, const unsigned long length, 
         nextIsL = currentIsL;
     }
 
-    for (unsigned long i = length-nS-1; i < length; ++i) {
+    for (unsigned long i = length-nS; i < length; ++i) {
         SA[i] = SA[SA[i]];
     }
 }
@@ -372,11 +378,16 @@ void sortL(const char * const input, unsigned long *SA, const unsigned long leng
 
 void optimalSuffixArray(const char * const input, unsigned long *SA, const unsigned long length) {
     printf("Optimal Suffix Array for input: %s\n", input);
-    // TODO assumes nS < nL.
+    if (length < 2) {
+        printf("Nothing to do.\n");
+        return;
+    }
+
+    // TODO assumes nS <= nL.
     // step 1
     const unsigned long nS = placeIndicesOfS_Type(input, length, SA);
     printf("nS = %lu\n", nS);
-    
+
     // step 2
     mergeSortS_Substrings(input, length, SA, nS);
     printf("Sorted S-substrings: ");

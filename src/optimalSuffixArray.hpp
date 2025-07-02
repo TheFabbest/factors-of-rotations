@@ -21,12 +21,34 @@ using namespace std;
     character after index i. Moreover, all characters between T[i] and T[k] are L-type, and characters between T[k] and T[j] are 
     S-type.
 */
-int compareS_substrings(const char * const input, unsigned long offsetA, unsigned long offsetB, const unsigned long endA, const unsigned long endB) {
-    
+unsigned long getS_SubstringEnd(const char * const input, const unsigned long start, const unsigned long length) {
+    unsigned long j = start+1;
+
+    // find j
+    while (j < length-1 && input[j] >= input[j + 1]) {
+        ++j;
+    }
+
+    // find k
+    unsigned long k = j-1;
+
+    while (k > start && input[k] == input[j]) {
+        --k;
+    }
+
+    return k;
+}
+
+int compareS_substrings(const char * const input, unsigned long offsetA, unsigned long offsetB, const unsigned long length) {
+    const unsigned long endA = getS_SubstringEnd(input, offsetA, length);
+    const unsigned long endB = getS_SubstringEnd(input, offsetB, length);
+
     while (offsetA != endA && offsetB != endB) {
         if (input[offsetA] != input[offsetB]) {
             return input[offsetA] - input[offsetB];
         }
+        ++offsetA;
+        ++offsetB;
     }
     if (offsetA == endA && offsetB == endB) {
         return 0; // equal
@@ -122,13 +144,16 @@ void mergeSortS_Substrings(const char * const input, const unsigned long length,
         for (unsigned long i = 0; i < nS; i += step) {
             unsigned long mid = i + step / 2;
             unsigned long end = std::min(i + step, nS);
+            cout << "Merging from " << i << " to " << end << " with mid at " << mid << endl;
             std::merge(array + i, array + mid, array + mid, array + end, auxiliary, 
                        [input, length](const unsigned long &a, const unsigned long &b) {
-                           return compareS_substrings(input, a, b, /* TODO */) < 0;
+                           return compareS_substrings(input, a, b, length) < 0;
                        });
             std::copy(auxiliary, auxiliary + (end - i), array + i);
+            cout << "Merged segment" << endl;
         }
         step *= 2;
+        cout << "step = " << step << endl;
     }
 }
 
@@ -144,7 +169,7 @@ void constructReducedProblem(const char * const input, const unsigned long lengt
     SA[0] = currentChar;
 
     for (unsigned long i = length - nS + 1; i < length; ++i) {
-        if (compareS_substrings(input, i-1, i, ) != 0) {
+        if (compareS_substrings(input, i-1, i, length) != 0) {
             ++currentChar;
         }
         SA[i - length + nS] = currentChar;

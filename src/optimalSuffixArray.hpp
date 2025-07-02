@@ -130,10 +130,10 @@ unsigned long placeIndicesOfS_Type(const char * const input, const unsigned long
 }
 
 // section 5.2 - step 2
-// correct for test AABBABAB
 // sorts the S-type suffixes in SA[length-nS, length-1] using merge sort
 // the comparison function compares suffixes by their lexicographic order
 // according to this ordering, a word is always bigger than its prefixes
+// correct for test AABBABAB
 void mergeSortS_Substrings(const char * const input, const unsigned long length, unsigned long *SA, const unsigned long nS) {
     // merge sort SA[nS, length-1] using SA[0, nS-1] as the auxiliary array, thus O(1) space
     unsigned long *auxiliary = SA;
@@ -144,16 +144,13 @@ void mergeSortS_Substrings(const char * const input, const unsigned long length,
         for (unsigned long i = 0; i < nS; i += step) {
             unsigned long mid = i + step / 2;
             unsigned long end = std::min(i + step, nS);
-            cout << "Merging from " << i << " to " << end << " with mid at " << mid << endl;
             std::merge(array + i, array + mid, array + mid, array + end, auxiliary, 
                        [input, length](const unsigned long &a, const unsigned long &b) {
                            return compareS_substrings(input, a, b, length) < 0;
                        });
             std::copy(auxiliary, auxiliary + (end - i), array + i);
-            cout << "Merged segment" << endl;
         }
         step *= 2;
-        cout << "step = " << step << endl;
     }
 }
 
@@ -162,14 +159,14 @@ void mergeSortS_Substrings(const char * const input, const unsigned long length,
 // since the s-substrings are sorted, if they are equal, they have the same rank,
 //  otherwise, the one on the right comes immediately after (rank_2 = rank_1 + 1).
 // maybe this could be done together with the merge sort?
-// note: the paper does not specify how to "remember" substrings length. My solution is to
-// process the input from the end, starting with the highest representable character.
+// note: could process the input from the end, starting with the highest representable character.
+// works for test AABBABAB
 void constructReducedProblem(const char * const input, const unsigned long length, unsigned long *SA, const unsigned long nS) {
     char currentChar = 0;
     SA[0] = currentChar;
 
     for (unsigned long i = length - nS + 1; i < length; ++i) {
-        if (compareS_substrings(input, i-1, i, length) != 0) {
+        if (compareS_substrings(input, SA[i-1], SA[i], length) != 0) {
             ++currentChar;
         }
         SA[i - length + nS] = currentChar;

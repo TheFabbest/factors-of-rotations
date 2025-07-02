@@ -81,10 +81,18 @@ void Heapify(unsigned long *array, unsigned long n, unsigned long index) {
     }
 }
 
-void BuildHeap(unsigned long *array, unsigned long n){
-    for (unsigned long i = n/2+1; i > 0; --i) {
+void BuildHeap(unsigned long *array, const unsigned long n){
+    for (unsigned long i = n/2; i > 0; --i) {
         const unsigned long index = i - 1;
         Heapify(array, n, index);
+    }
+}
+
+void HeapSort(unsigned long *array, const unsigned long n) {
+    BuildHeap(array, n);
+    for (unsigned long i = n - 1; i > 0; --i) {
+        std::swap(array[0], array[i]);
+        Heapify(array, i, 0);
     }
 }
 
@@ -176,11 +184,7 @@ void constructReducedProblem(const char * const input, const unsigned long lengt
 
 // section 5.3 - step 2
 void heapSortReducedProblem(unsigned long *SA, unsigned long length, const unsigned long nS) {
-    BuildHeap(SA + nS, length - nS);
-    for (unsigned long i = length; i > nS; --i) {
-        std::swap(SA[nS], SA[i]);
-        Heapify(SA + nS, i, 0);
-    }
+    HeapSort(SA + length - nS, nS);
 }
 
 // section 5.4

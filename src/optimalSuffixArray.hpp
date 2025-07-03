@@ -21,7 +21,7 @@ using namespace std;
     character after index i. Moreover, all characters between T[i] and T[k] are L-type, and characters between T[k] and T[j] are 
     S-type.
 */
-unsigned long getS_SubstringEnd(const char * const input, const unsigned long start, const unsigned long length) {
+unsigned long getS_SubstringEnd(const unsigned long * const input, const unsigned long start, const unsigned long length) {
     unsigned long j = start+1;
 
     // find j
@@ -30,17 +30,17 @@ unsigned long getS_SubstringEnd(const char * const input, const unsigned long st
     }
 
     // find k
-    unsigned long k = j-1;
+    unsigned long k = j;
 
     while (k > start && input[k] == input[j]) {
         --k;
     }
-
+    ++k;
     return k;
 }
 
 // assumed
-unsigned long getL_SubstringEnd(const char * const input, const unsigned long start, const unsigned long length) {
+unsigned long getL_SubstringEnd(const unsigned long * const input, const unsigned long start, const unsigned long length) {
     unsigned long j = start+1;
 
     // find j
@@ -58,7 +58,7 @@ unsigned long getL_SubstringEnd(const char * const input, const unsigned long st
     return k;
 }
 
-int compare_substrings(const char * const input, unsigned long offsetA, unsigned long offsetB, const unsigned long length, const bool usingLType) {
+int compare_substrings(const unsigned long * const input, unsigned long offsetA, unsigned long offsetB, const unsigned long length, const bool usingLType) {
     unsigned long endA, endB;
     if (usingLType) {
         endA = getL_SubstringEnd(input, offsetA, length);
@@ -68,7 +68,7 @@ int compare_substrings(const char * const input, unsigned long offsetA, unsigned
         endB = getS_SubstringEnd(input, offsetB, length);
     }
 
-    while (offsetA != endA && offsetB != endB) {
+    while (offsetA <= endA && offsetB <= endB) {
         if (input[offsetA] != input[offsetB]) {
             return input[offsetA] - input[offsetB];
         }
@@ -115,13 +115,13 @@ void BuildHeap(unsigned long *SA, const unsigned long length, const unsigned lon
 }
 
 // modified binary search that returns the first occurrence of the value
-unsigned long binary_search(const char * const input, const unsigned long *array, const unsigned long length, const unsigned long value) {
+unsigned long binary_search(const unsigned long * const input, const unsigned long *array, const unsigned long length, const unsigned long value) {
     unsigned long left = 0;
     unsigned long right = length - 1;
     while (right > left)
     {
         const unsigned long mid = left + ((right-left) / 2);
-        if (array[mid] == BT || input[array[mid]] >= value)
+        if (array[mid] == BT || array[mid] == BH || input[array[mid]] >= value)
         {
             right = mid;
         }
@@ -135,9 +135,9 @@ unsigned long binary_search(const char * const input, const unsigned long *array
 
 // end of auxiliary functions -----
 
-void optimalSuffixArray(const char * const input, unsigned long *SA, const unsigned long length);
+void optimalSuffixArray(const unsigned long * const input, unsigned long *SA, const unsigned long length);
 
-unsigned long countS_Type(const char * const input, const unsigned long length) {
+unsigned long countS_Type(const unsigned long * const input, const unsigned long length) {
     bool nextIsL = true;
     unsigned long count = 0;
     unsigned long last_inserted_index = length;
@@ -157,7 +157,7 @@ unsigned long countS_Type(const char * const input, const unsigned long length) 
 // returns the number of S-type suffixes found (nS)
 // correct for test AABBABAB
 // updated to work on L-type suffixes as well
-void placeIndicesOf_Type(const char * const input, const unsigned long length, unsigned long *SA, const bool usingLType) {
+void placeIndicesOf_Type(const unsigned long * const input, const unsigned long length, unsigned long *SA, const bool usingLType) {
     bool nextIsL = false; // the sentinel at the end is S_TYPE
     unsigned long last_inserted_index = length;
     for (unsigned long i = 0; i < length; ++i) {
@@ -177,7 +177,7 @@ void placeIndicesOf_Type(const char * const input, const unsigned long length, u
 // according to this ordering, a word is always bigger than its prefixes
 // correct for test AABBABAB
 // updated to work on L-type suffixes as well
-void mergeSort_Substrings(const char * const input, const unsigned long length, unsigned long *SA, const unsigned long nS, const bool usingLType) {
+void mergeSort_Substrings(const unsigned long * const input, const unsigned long length, unsigned long *SA, const unsigned long nS, const bool usingLType) {
     // merge sort SA[nS, length-1] using SA[0, nS-1] as the auxiliary array, thus O(1) space
     unsigned long *auxiliary = SA;
     unsigned long *array = SA + length - nS;
@@ -205,8 +205,8 @@ void mergeSort_Substrings(const char * const input, const unsigned long length, 
 // note: could process the input from the end, starting with the highest representable character.
 // works for test AABBABAB
 // updated to work on L-type suffixes as well
-void constructReducedProblem(const char * const input, const unsigned long length, unsigned long *SA, const unsigned long nS, const bool usingLType) {
-    char currentChar = 0;
+void constructReducedProblem(const unsigned long * const input, const unsigned long length, unsigned long *SA, const unsigned long nS, const bool usingLType) {
+    unsigned long currentChar = 0;
     SA[0] = currentChar;
 
     for (unsigned long i = length - nS + 1; i < length; ++i) {
@@ -234,9 +234,9 @@ void heapSortReducedProblem(unsigned long *SA, const unsigned long length, const
 }
 
 // section 5.4
-void RestoreFromRecursion(const char * const input, const unsigned long length, unsigned long *SA, const unsigned long nS, const bool usingLType) {
+void RestoreFromRecursion(const unsigned long * const input, const unsigned long length, unsigned long *SA, const unsigned long nS, const bool usingLType) {
     // recursion (TODO in O(1) space)
-    optimalSuffixArray(input+length-nS, SA+length-nS, nS);
+    optimalSuffixArray(SA, SA+length-nS, nS);
 
     cout << "out of recursion, SA: ";
     for (unsigned long i = 0; i < length; ++i) {
@@ -268,7 +268,7 @@ void RestoreFromRecursion(const char * const input, const unsigned long length, 
 }
 
 // section 5.5 - preprocessing
-void preprocess(const char * const input, unsigned long *SA, const unsigned long length, const unsigned long nS, const bool usingLType) {
+void preprocess(const unsigned long * const input, unsigned long *SA, const unsigned long length, const unsigned long nS, const bool usingLType) {
     bool nextIsL = false;
     unsigned long last_inserted_index = length-nS;
     for (unsigned long i = 0; i < length; ++i) {
@@ -282,7 +282,7 @@ void preprocess(const char * const input, unsigned long *SA, const unsigned long
 
     for (unsigned long i = 0; i < length; ++i) {
         printf("SA[%lu] = %lu\n", i, SA[i]);
-        printf("input[%lu] = %c\n", i, input[SA[i]]);
+        printf("input[%lu] = %lu\n", i, input[SA[i]]);
     }
 
     // TODO
@@ -306,17 +306,19 @@ void preprocess(const char * const input, unsigned long *SA, const unsigned long
 }
 
 // section 5.5 - step 1
-void initializeSA(const char * const input, unsigned long *SA, const unsigned long length, const bool usingLType) {
+void initializeSA(const unsigned long * const input, unsigned long *SA, const unsigned long length, const bool usingLType) {
     printf("here with l %lu\n",length);
     for (unsigned long i = 0; i < length; ++i) {
         cout << SA[i] << " " ;
+    }
+    for (unsigned long i = 0; i < length; ++i) {
+        cout << input[i] << " ";
     }
     // we scan T from right to left
     bool nextIsL = false;
     for (unsigned long i = 0; i < length; ++i) {
         const unsigned long index = length - i - 1;
         const bool currentIsL = (index == length-1) || (input[index] > input[index+1] || (nextIsL && input[index] == input[index+1]));
-        
         // for each scanning character T[i] which is L_TYPE, if bucket T[i] has not been initialized yet, we initialize it
         if (currentIsL && !usingLType || !currentIsL && usingLType) {
             //Let l denote the head of bucket T [i ] in SA (i.e. l is the smallest index in SA such that T [SA[l]] = T [i])
@@ -356,17 +358,23 @@ void initializeSA(const char * const input, unsigned long *SA, const unsigned lo
 }
 
 // section 5.5 - step 2
-void sortL(const char * const input, unsigned long *SA, const unsigned long length, const bool usingLType) {
+void sortL(const unsigned long * const input, unsigned long *SA, const unsigned long length, const bool usingLType) {
     for (unsigned long l = 0; l < length; ++l) {
         const unsigned long j = SA[l] - 1;
         printf("l = %lu, j = %lu, SA[l] = %lu\n", l, j, SA[l]);
+        
+        // TODO this only works for nL > 3, "other cases are simpler".
+        
         // skip S type suffixes, this does not cover case 4 (but is always true for case 4)
         // TODO see this condition
-        if (j != BT && j != BH && j != E && j != R1 && j != R2) {
-            const bool skipS = input[j] < input[j+1];
-            if ((skipS && !usingLType || !skipS && usingLType) || (input[j] == input[j+1] && (SA[l+2] == E || SA[l+2] == 0)))
-            {
-                cout << "Skipping suffix at index " << l << " because it is not the correct type." << endl;
+        if (j != R2-1 && j != BH && j != E && j != R1 && j != R2) {
+            if (input[j] < input[j+1] && !usingLType || 
+                input[j] > input[j+1] && usingLType) {
+                cout << "Skipping suffix at index " << l << " because it is not the right type." << endl;
+                continue;
+            }
+            if (input[j] == input[j+1] && (SA[l+2] == E || SA[l+2] == 0)) {
+                cout << "Skipping suffix at index " << l << " because it is not the right type." << endl;
                 continue;
             }
         }
@@ -428,8 +436,11 @@ void sortL(const char * const input, unsigned long *SA, const unsigned long leng
     }
 }
 
-void optimalSuffixArray(const char * const input, unsigned long *SA, const unsigned long length) {
-    printf("Optimal Suffix Array for input: %s, length: %lu\n", input, length);
+void optimalSuffixArray(const unsigned long * const input, unsigned long *SA, const unsigned long length) {
+    printf("Optimal Suffix Array for input of length: %lu\n", length);
+    for (unsigned long i = 0; i < length; ++i) {
+        printf("input[%lu] = %lu\n", i, input[i]);
+    }
     if (length < 2) {
         printf("Nothing to do.\n");
         return;
@@ -444,6 +455,11 @@ void optimalSuffixArray(const char * const input, unsigned long *SA, const unsig
     }
     
     const bool usingLType = (nS > length / 2); // if there are more L-type suffixes, we swap the roles of S and L
+    if (usingLType) {
+        printf("Using L-type suffixes.\n");
+    } else {
+        printf("Using S-type suffixes.\n");
+    }
     if (usingLType) {
         nS = length - nS; 
     }

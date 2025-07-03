@@ -308,6 +308,14 @@ void testOptimalSuffixArray(const char input_word[], const unsigned long word_le
         }
     }
     cout << "Optimal Suffix Array for " << input_word << " is correct." << endl;
+    cout << "SA_optimal: ";
+    for (unsigned long i = 0; i < word_length; ++i) {
+        cout << SA_optimal[i] << " ";
+    }
+    cout << endl << "SA: ";
+    for (unsigned long i = 0; i < word_length; ++i) {
+        cout << SA[i] << " ";
+    }
 
     delete[] SA;
     delete[] (SA_optimal-1);

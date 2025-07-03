@@ -121,7 +121,7 @@ unsigned long binary_search(const char * const input, const unsigned long *array
     while (right > left)
     {
         const unsigned long mid = left + ((right-left) / 2);
-        if (input[array[mid]] >= value)
+        if (array[mid] == BT || input[array[mid]] >= value)
         {
             right = mid;
         }
@@ -157,12 +157,12 @@ unsigned long countS_Type(const char * const input, const unsigned long length) 
 // returns the number of S-type suffixes found (nS)
 // correct for test AABBABAB
 // updated to work on L-type suffixes as well
-void placeIndicesOfS_Type(const char * const input, const unsigned long length, unsigned long *SA, const bool usingLType) {
-    bool nextIsL = true; // last character is always L_TYPE because of the sentinel at the end (which is S_TYPE)
+void placeIndicesOf_Type(const char * const input, const unsigned long length, unsigned long *SA, const bool usingLType) {
+    bool nextIsL = false; // the sentinel at the end is S_TYPE
     unsigned long last_inserted_index = length;
-    for (unsigned long i = 0; i < length-1; ++i) {
-        const unsigned long index = length - i - 2;
-        const bool currentIsL = input[index] > input[index+1] || (nextIsL && input[index] == input[index+1]);
+    for (unsigned long i = 0; i < length; ++i) {
+        const unsigned long index = length - i - 1;
+        const bool currentIsL = (index == length-1) || (input[index] > input[index+1] || (nextIsL && input[index] == input[index+1]));
         if (currentIsL && usingLType || !currentIsL && !usingLType) {
             cout << "Inserting S-type suffix of index " << index << " in " << last_inserted_index-1 << endl;
             SA[--last_inserted_index] = index;
@@ -235,15 +235,25 @@ void heapSortReducedProblem(unsigned long *SA, const unsigned long length, const
 
 // section 5.4
 void RestoreFromRecursion(const char * const input, const unsigned long length, unsigned long *SA, const unsigned long nS, const bool usingLType) {
-    // recursion
-    optimalSuffixArray(input, SA+length-nS, length - nS);
+    // recursion (TODO in O(1) space)
+    optimalSuffixArray(input+length-nS, SA+length-nS, nS);
+
+    cout << "out of recursion, SA: ";
+    for (unsigned long i = 0; i < length; ++i) {
+        cout << SA[i] << " ";
+    }
+    cout << endl << "output from recursion: ";
+    for (unsigned long i = length-nS; i < length; ++i) {
+        cout << SA[i] << " ";
+    }
+    cout << endl;
 
     // restore
-    bool nextIsL = true;
+    bool nextIsL = false;
     unsigned long sum = 0;
-    for (unsigned long i = 0; i < length-1; ++i) {
-        const unsigned long index = length - i - 2;
-        const bool currentIsL = input[index] > input[index+1] || (nextIsL && input[index] == input[index+1]);
+    for (unsigned long i = 0; i < length; ++i) {
+        const unsigned long index = length - i - 1;
+        const bool currentIsL = (index == length-1) || (input[index] > input[index+1] || (nextIsL && input[index] == input[index+1]));
         if (!currentIsL && !usingLType || currentIsL && usingLType) {
             ++sum;
             SA[nS - sum] = index;
@@ -252,17 +262,18 @@ void RestoreFromRecursion(const char * const input, const unsigned long length, 
     }
 
     for (unsigned long i = length-nS; i < length; ++i) {
+        cout << "SA[" << i << "] = " << SA[i] << endl;
         SA[i] = SA[SA[i]];
     }
 }
 
 // section 5.5 - preprocessing
 void preprocess(const char * const input, unsigned long *SA, const unsigned long length, const unsigned long nS, const bool usingLType) {
-    bool nextIsL = true; // last character is always L_TYPE because of the sentinel at the end (which is S_TYPE)
+    bool nextIsL = false;
     unsigned long last_inserted_index = length-nS;
-    for (unsigned long i = 0; i < length-1; ++i) {
-        const unsigned long index = length - i - 2;
-        const bool currentIsL = input[index] > input[index+1] || (nextIsL && input[index] == input[index+1]);
+    for (unsigned long i = 0; i < length; ++i) {
+        const unsigned long index = length - i - 1;
+        const bool currentIsL = (index == length-1) || (input[index] > input[index+1] || (nextIsL && input[index] == input[index+1]));
         if (currentIsL && !usingLType || currentIsL && !usingLType) {
             SA[--last_inserted_index] = index;
         }
@@ -297,27 +308,26 @@ void preprocess(const char * const input, unsigned long *SA, const unsigned long
 // section 5.5 - step 1
 void initializeSA(const char * const input, unsigned long *SA, const unsigned long length, const bool usingLType) {
     printf("here with l %lu\n",length);
-
+    for (unsigned long i = 0; i < length; ++i) {
+        cout << SA[i] << " " ;
+    }
     // we scan T from right to left
-    bool nextIsL = true;
-    for (unsigned long i = 0; i < length-1; ++i) {
-        printf("i = %lu, nextIsL = %d\n", i, nextIsL);
-        const unsigned long index = length - i - 2;
-        const bool currentIsL = input[index] > input[index+1] || (nextIsL && input[index] == input[index+1]);
+    bool nextIsL = false;
+    for (unsigned long i = 0; i < length; ++i) {
+        const unsigned long index = length - i - 1;
+        const bool currentIsL = (index == length-1) || (input[index] > input[index+1] || (nextIsL && input[index] == input[index+1]));
         
         // for each scanning character T[i] which is L_TYPE, if bucket T[i] has not been initialized yet, we initialize it
         if (currentIsL && !usingLType || !currentIsL && usingLType) {
-            
             //Let l denote the head of bucket T [i ] in SA (i.e. l is the smallest index in SA such that T [SA[l]] = T [i])
             // We can ﬁnd l by searching T [i ] in SA (the search key for SA[i ] is T [SA[i ]]) using binary search.
 
             const unsigned long l = binary_search(input, SA, length, input[index]);
-
             if (SA[l+1] == BH || SA[l+1] == BT) {
                 // if the bucket is already initialized, we skip it
                 continue;
             }
-
+            
             // we let rL denote the tail of L-suﬃxes in this bucket (i.e., rL is the largest index in SA such
             // that T[SA[rL]] = T[i] and T[SA[rL]] is L-type).
             unsigned long rL = l;
@@ -325,10 +335,9 @@ void initializeSA(const char * const input, unsigned long *SA, const unsigned lo
                 ++rL;
             }
             
-            
             // Note that nL = rL - l + 1. Hence, it suﬃces to compute l and rL.
-
             const unsigned long nL = rL - l + 1;
+
             if (nL == 2) {
                 SA[l+1] = BT;
             }
@@ -347,15 +356,17 @@ void initializeSA(const char * const input, unsigned long *SA, const unsigned lo
 }
 
 // section 5.5 - step 2
-void sortL(const char * const input, unsigned long *SA, const unsigned long length) {
+void sortL(const char * const input, unsigned long *SA, const unsigned long length, const bool usingLType) {
     for (unsigned long l = 0; l < length; ++l) {
         const unsigned long j = SA[l] - 1;
         printf("l = %lu, j = %lu, SA[l] = %lu\n", l, j, SA[l]);
         // skip S type suffixes, this does not cover case 4 (but is always true for case 4)
+        // TODO see this condition
         if (j != BT && j != BH && j != E && j != R1 && j != R2) {
-            if (input[j] < input[j+1] || (input[j] == input[j+1] && (SA[l+2] == E || SA[l+2] == 0)))
+            const bool skipS = input[j] < input[j+1];
+            if ((skipS && !usingLType || !skipS && usingLType) || (input[j] == input[j+1] && (SA[l+2] == E || SA[l+2] == 0)))
             {
-                cout << "Skipping L-type suffix at index " << l << " because it is not L-type." << endl;
+                cout << "Skipping suffix at index " << l << " because it is not the correct type." << endl;
                 continue;
             }
         }
@@ -439,7 +450,7 @@ void optimalSuffixArray(const char * const input, unsigned long *SA, const unsig
     printf("nS = %lu\n", nS);
 
     // step 1
-    placeIndicesOfS_Type(input, length, SA, usingLType);
+    placeIndicesOf_Type(input, length, SA, usingLType);
 
     // step 2
     mergeSort_Substrings(input, length, SA, nS, usingLType);
@@ -494,6 +505,6 @@ void optimalSuffixArray(const char * const input, unsigned long *SA, const unsig
 
 
     // step 8
-    sortL(input, SA, length);
+    sortL(input, SA, length, usingLType);
     printf("Sorted L-type suffixes.\n");
 }

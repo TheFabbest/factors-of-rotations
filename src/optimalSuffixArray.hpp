@@ -116,7 +116,7 @@ void BuildHeap(unsigned long *SA, const unsigned long length, const unsigned lon
 
 // modified binary search that returns the first occurrence of the value
 // todo optimize
-unsigned long custom_binary_search(const unsigned long * const input, const unsigned long *array, const unsigned long length, const unsigned long value) {
+unsigned long custom_binary_search_old(const unsigned long * const input, const unsigned long *array, const unsigned long length, const unsigned long value) {
     unsigned long left = 0;
     unsigned long right = length - 1;
     while (right > left)
@@ -132,8 +132,9 @@ unsigned long custom_binary_search(const unsigned long * const input, const unsi
                 break;
             }
         }
-        if (mid == left || array[mid] < value) {
-            if (array[mid] < value) {
+        if (mid == left || input[array[mid]] < value) {
+            if (!(array[mid] == BT || array[mid] == BH || array[mid] == E || array[mid] == R1 || array[mid] == R2)
+                    && input[array[mid]] < value) {
                 if (mid == left) ++left;
                 ++mid;
             }
@@ -152,6 +153,18 @@ unsigned long custom_binary_search(const unsigned long * const input, const unsi
         }
     }
     return right;
+}
+
+// unoptimized search that is obviously correct O(n), for testing purposes
+unsigned long custom_binary_search(const unsigned long * const input, const unsigned long *array, const unsigned long length, const unsigned long value) {
+    for (unsigned long i = 0; i < length; ++i) {
+        // skips special symbols
+        if (array[i] < length && input[array[i]] == value) {
+            return i;
+        }
+    }
+    cout << "not found" << endl;
+    return length; // not found
 }
 
 // end of auxiliary functions -----
@@ -328,7 +341,7 @@ void preprocess(const unsigned long * const input, unsigned long *SA, const unsi
 
 // section 5.5 - step 1
 void initializeSA(const unsigned long * const input, unsigned long *SA, const unsigned long length, const bool usingLType) {
-    printf("here with l %lu\n",length);
+    cout << "initializing SA" << endl;
     for (unsigned long i = 0; i < length; ++i) {
         cout << SA[i] << " " ;
     }
@@ -347,9 +360,7 @@ void initializeSA(const unsigned long * const input, unsigned long *SA, const un
         if (currentIsL && !usingLType || !currentIsL && usingLType) {
             //Let l denote the head of bucket T [i ] in SA (i.e. l is the smallest index in SA such that T [SA[l]] = T [i])
             // We can ﬁnd l by searching T [i ] in SA (the search key for SA[i ] is T [SA[i ]]) using binary search.
-            cout << index << " " << input[index] << endl;
             const unsigned long l = custom_binary_search(input, SA, length, input[index]);
-            cout << "l = " << l << endl;
             if (SA[l+1] == BH || SA[l+1] == BT) {
                 // if the bucket is already initialized, we skip it
                 continue;
@@ -364,7 +375,7 @@ void initializeSA(const unsigned long * const input, unsigned long *SA, const un
             
             // Note that nL = rL - l + 1. Hence, it suﬃces to compute l and rL.
             const unsigned long nL = rL - l + 1;
-
+            cout << "initializing bucket T[" << index << "] with nL = " << nL << endl;
             if (nL == 2) {
                 SA[l+1] = BT;
             }
@@ -383,7 +394,7 @@ void initializeSA(const unsigned long * const input, unsigned long *SA, const un
 }
 
 void case4(unsigned long *SA, unsigned long l, unsigned long j, unsigned long length) {
-    unsigned long rL = l + 2;
+    unsigned long rL = l;
 
     // this check should be O(nL), how?
     // once R1 is implemented for good it could be better than this, maybe even O(1):
@@ -411,27 +422,32 @@ void sortL(const unsigned long * const input, unsigned long *SA, const unsigned 
     }
 
     for (unsigned long i = 0; i < length; ++i) {
+        cout << "i= " << i<<endl;
+        cout << "input[i] = " << input[i] << endl;
         const unsigned long l = custom_binary_search(input, SA, length, input[i]);
-        const unsigned long j = SA[l] - 1;
-        printf("l = %lu, j = %lu, SA[l] = %lu\n", l, j, SA[l]);
+        if (SA[i] == 0) {
+            cout << "skipping index " << i << " because SA[i] == 0." << endl;
+            continue;
+        }
+        const unsigned long j = SA[i] - 1;
+        printf("l = %lu, j = %lu\n", l, j);
         
         // skip S type suffixes, this does not cover case 4 (but is always true for case 4)
         // TODO see this condition
-        if (j != R2-1 && j != BH && j != E && j != R1 && j != R2) {
+        if (j != R2-1 && j != BH && j != E && j != R1 && j != R2 && j != BT) {
             if (input[j] < input[j+1] && !usingLType || 
                 input[j] > input[j+1] && usingLType) {
-                cout << "Skipping suffix at index " << l << " because it is not the right type." << endl;
+                cout << "Skipping suffix with j=" << j << " because it is not the right type." << endl;
                 continue;
             }
-            if (input[j] == input[j+1]) {
+            else if (input[j] == input[j+1]) {
                 if (! (SA[l+1] == BH || SA[l+1] == R2) ) {
-                    cout << "Skipping suffix at index " << l << " because it is not the right type (I have already filled this bucket)." << endl;
+                    cout << "Skipping suffix with j=" << j << " because it is not the right type (I have already filled this bucket)." << endl;
                     if (SA[l+1] != BT && SA[l+1] != R1 && SA[l+1] != BH && SA[l+1] != R2) case4(SA, l, j, length);
                     continue;
                 }
             }
         }
-
         // nL = 2?
         if (SA[l+1] == BT) {
             SA[l] = j;
@@ -580,4 +596,8 @@ void optimalSuffixArray(const unsigned long * const input, unsigned long *SA, co
     // step 8
     sortL(input, SA, length, usingLType);
     printf("Sorted L-type suffixes.\n");
+    for (unsigned long i = 0; i < length; ++i) {
+        printf("%lu ", SA[i]);
+    }
+    printf("\n");
 }

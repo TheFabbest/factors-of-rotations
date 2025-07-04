@@ -120,8 +120,36 @@ unsigned long binary_search(const unsigned long * const input, const unsigned lo
     unsigned long right = length - 1;
     while (right > left)
     {
-        const unsigned long mid = left + ((right-left) / 2);
-        if (array[mid] == BT || array[mid] == BH || input[array[mid]] >= value)
+        unsigned long mid = left + ((right-left) / 2);
+
+        // max two consecutive symbols (BT, BH etc.)
+        bool mustChange = array[mid] == BT || array[mid] == BH || array[mid] == E || array[mid] == R1 || array[mid] == R2;
+        if (mustChange) {
+            // if not the first char, we can check the previous char
+            if (mid > 0) {
+                --mid;
+                mustChange = array[mid] == BT || array[mid] == BH || array[mid] == E || array[mid] == R1 || array[mid] == R2;
+                // if the previous char is also a special char, we need to move back one more
+                if (mid > 0 && mustChange) {
+                    --mid;
+                }
+                // if we arrived at the first char, we can move forward of two.
+                else if (mustChange) {
+                    mid += 2;
+                }
+            }
+            // if we are at the first char, we can only move forward of one
+            else {
+                mid = 1;
+                // then we check again
+                mustChange = array[mid] == BT || array[mid] == BH || array[mid] == E || array[mid] == R1 || array[mid] == R2;
+                if (mustChange) {
+                    ++mid;
+                }
+            }
+        }
+
+        if (input[array[mid]] >= value)
         {
             right = mid;
         }
@@ -359,10 +387,16 @@ void initializeSA(const unsigned long * const input, unsigned long *SA, const un
 
 // section 5.5 - step 2
 void sortL(const unsigned long * const input, unsigned long *SA, const unsigned long length, const bool usingLType) {
+    printf("Sorting L-type suffixes, length = %lu\n", length);
+    printf("BT = %lu, BH = %lu, E = %lu, R1 = %lu, R2 = %lu\n", BT, BH, E, R1, R2);
+    for (unsigned long i = 0; i < length; ++i) {
+        printf("input[%lu] = %lu, SA[%lu] = %lu\n", i, input[i], i, SA[i]);
+    }
+
     for (unsigned long l = 0; l < length; ++l) {
         const unsigned long j = SA[l] - 1;
         printf("l = %lu, j = %lu, SA[l] = %lu\n", l, j, SA[l]);
-        
+
         // TODO this only works for nL > 3, "other cases are simpler".
         
         // skip S type suffixes, this does not cover case 4 (but is always true for case 4)
@@ -399,7 +433,7 @@ void sortL(const unsigned long * const input, unsigned long *SA, const unsigned 
                     SA[rL - 1] = j;
                     SA[l + 1] = R2;
                     printf("case 2 (2), moved SA[%lu] to SA[%lu], initialized SA[%lu] = %lu, SA[%lu] = %lu\n", 
-                           l + 3, l + 2, rL - 1, j, l + 1, R2);
+                        l + 3, l + 2, rL - 1, j, l + 1, R2);
                 }
             }
         }
@@ -412,7 +446,7 @@ void sortL(const unsigned long * const input, unsigned long *SA, const unsigned 
             SA[rL - 1] = j;
             SA[rL] = R1;
             printf("case 3, moved SA[%lu] to SA[%lu], initialized SA[%lu] = %lu, SA[%lu] = %lu\n", 
-                   l + 2, l + 1, rL - 1, j, rL, R1);
+                l + 2, l + 1, rL - 1, j, rL, R1);
         }
         else {
             unsigned long rL = l + 2;
@@ -430,7 +464,7 @@ void sortL(const unsigned long * const input, unsigned long *SA, const unsigned 
                 printf("case 4, initialized SA[%lu] = %lu\n", rL, j);
             }
             else {
-                printf("case 4, no R1 found, skipping.\n");
+                printf("case 4, no R1 found, skipping (is this the case nL=1?).\n");
             }
         }
     }

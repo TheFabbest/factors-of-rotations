@@ -459,6 +459,9 @@ void sortL(const unsigned long * const input, unsigned long *SA, const unsigned 
             continue;
         }
 
+        // TODO all this method is wrong because the whole algorithm is meant to use the character at the end,
+        // first thing, j should not be SA[i]-1 but SA[i].
+        // second thing, the first j is always length-1 (because SA[0] is the character at the end, so length).
         const unsigned long j = (SA[i] != 0) ? SA[i] - 1 : length - 1; // TODO see SA[i] = 0 means the sentinel, so we take the last index
         unsigned long l = custom_binary_search(input, SA, length, input[j]); // TODO check if input[i] or input[j]
         printf("l = %lu, j = %lu\n", l, j);

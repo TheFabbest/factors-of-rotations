@@ -18,7 +18,7 @@ using namespace std;
 int main() {
     //testAll(); // uncomment to run all tests
     //testOneBig(); // not supported yet
-    testOptimalSuffixArray("AAB", 3);
+    testOptimalSuffixArray("ABB", 3);
     const char word[] = "AABABBBAABABBC";
     const unsigned long word_length = (sizeof(word) / sizeof(char)) - 1;
     PrintAllFactors(word, word_length);

@@ -443,6 +443,88 @@ void case4(unsigned long *SA, unsigned long l, unsigned long j, unsigned long le
     }
 }
 
+void sortL_body(const unsigned long * const input, unsigned long *SA, const unsigned long length, const bool usingLType, unsigned long j){
+    unsigned long l = custom_binary_search(input, SA, length, input[j]); // TODO check if input[i] or input[j]
+    printf("l = %lu, j = %lu\n", l, j);
+    
+    // skip S type suffixes, this does not cover case 4 (but is always true for case 4)
+    // TODO see this condition
+    
+    if ((j != length-1 && input[j] < input[j+1] && !usingLType) || 
+        ((j == length-1 || input[j] > input[j+1]) && usingLType)) {
+        cout << "Skipping suffix with j=" << j << " because it is not the right type." << endl;
+        return;
+    }
+    else if (input[j] == input[j+1]) {
+        if (! (SA[l+1] == BH || SA[l+1] == R2) ) {
+            cout << "Skipping suffix with j=" << j << " because it is not the right type (I have already filled this bucket)." << endl;
+            if (SA[l+1] != BT && SA[l+1] != R1 && SA[l+1] != BH && SA[l+1] != R2) case4(SA, l, j, length);
+            return;
+        }
+    }
+    
+    // nL = 2?
+    if (SA[l+1] == BT) {
+        SA[l] = j;
+        SA[l+1] = R1; // not in the paper, but how I implemented it
+    }
+    else if (SA[l+1] == R1) {
+        SA[l+1] = j;
+    }
+    else if (SA[l+1] == BH) {
+        if (SA[l+2] == E) {
+            SA[l] = j;
+            SA[l+2] = 1; // counter for the number of L-type suffixes put so far
+            
+            printf("case 1, initialized SA[%lu] = %lu, SA[%lu] = 1\n", l, j, l + 2);
+        }
+        else if (SA[l+2] == BT) { // not in the paper, nL=3, first to put in
+            SA[l] = j;
+            SA[l + 2] = R2; // not in the paper, but how I implemented it
+            printf("nL = 3, first to put in, initialized SA[%lu] = %lu, SA[%lu] = R2\n", l, j, l + 2);
+        }
+        else if (SA[l+2] == R2) { // not in the paper, nL=3, second to put in
+            SA[l + 1] = j;
+            SA[l + 2] = R1; // not in the paper, but how I implemented it
+            printf("nL = 3, second to put in, initialized SA[%lu] = %lu\n", l + 1, j);
+        }
+        else if (SA[l+2] == R1) {
+            SA[l+2] = j;
+            printf("nL = 3, third to put in, initialized SA[%lu] = %lu\n", l + 2, j);
+        }
+        else {
+            const unsigned long c = SA[l+2];
+            if (SA[l+c+2] == j != BT) {
+                SA[l + c + 2] = j;
+                SA[l + 2] = c + 1;
+                printf("case 2 (1), initialized SA[%lu] = %lu, SA[%lu] = %lu\n", l + c + 2, j, l + 2, c + 1);
+            }
+            else {
+                const unsigned long rL = l + 3 + c;
+                std::move(SA + l + 3, SA + rL - 1, SA + l + 2);
+                SA[rL - 1] = j;
+                SA[l + 1] = R2;
+                printf("case 2 (2), moved SA[%lu] to SA[%lu], initialized SA[%lu] = %lu, SA[%lu] = %lu\n", 
+                    l + 3, l + 2, rL - 1, j, l + 1, R2);
+            }
+        }
+    }
+    else if (SA[l+1] == R2) {
+        unsigned long rL = l + 2;
+        while (SA[rL] != BT) {
+            ++rL;
+        }
+        std::move(SA + l + 2, SA + rL - 1, SA + l + 1);
+        SA[rL - 1] = j;
+        SA[rL] = R1;
+        printf("case 3, moved SA[%lu] to SA[%lu], initialized SA[%lu] = %lu, SA[%lu] = %lu\n", 
+            l + 2, l + 1, rL - 1, j, rL, R1);
+    }
+    else {
+        case4(SA, l, j, length);
+    }
+}
+
 // section 5.5 - step 2
 void sortL(const unsigned long * const input, unsigned long *SA, const unsigned long length, const bool usingLType) {
     printf("Sorting L-type suffixes, length = %lu\n", length);
@@ -450,6 +532,8 @@ void sortL(const unsigned long * const input, unsigned long *SA, const unsigned 
     for (unsigned long i = 0; i < length; ++i) {
         printf("input[%lu] = %lu, SA[%lu] = %lu\n", i, input[i], i, SA[i]);
     }
+
+    sortL_body(input, SA, length, usingLType, length-1);
 
     for (unsigned long i = 0; i < length; ++i) {
         cout << "i= " << i<<endl;
@@ -462,86 +546,8 @@ void sortL(const unsigned long * const input, unsigned long *SA, const unsigned 
         // TODO all this method is wrong because the whole algorithm is meant to use the character at the end,
         // first thing, j should not be SA[i]-1 but SA[i].
         // second thing, the first j is always length-1 (because SA[0] is the character at the end, so length).
-        const unsigned long j = (SA[i] != 0) ? SA[i] - 1 : length - 1; // TODO see SA[i] = 0 means the sentinel, so we take the last index
-        unsigned long l = custom_binary_search(input, SA, length, input[j]); // TODO check if input[i] or input[j]
-        printf("l = %lu, j = %lu\n", l, j);
-        
-        // skip S type suffixes, this does not cover case 4 (but is always true for case 4)
-        // TODO see this condition
-        
-        if ((j != length-1 && input[j] < input[j+1] && !usingLType) || 
-            ((j == length-1 || input[j] > input[j+1]) && usingLType)) {
-            cout << "Skipping suffix with j=" << j << " because it is not the right type." << endl;
-            continue;
-        }
-        else if (input[j] == input[j+1]) {
-            if (! (SA[l+1] == BH || SA[l+1] == R2) ) {
-                cout << "Skipping suffix with j=" << j << " because it is not the right type (I have already filled this bucket)." << endl;
-                if (SA[l+1] != BT && SA[l+1] != R1 && SA[l+1] != BH && SA[l+1] != R2) case4(SA, l, j, length);
-                continue;
-            }
-        }
-        
-        // nL = 2?
-        if (SA[l+1] == BT) {
-            SA[l] = j;
-            SA[l+1] = R1; // not in the paper, but how I implemented it
-        }
-        else if (SA[l+1] == R1) {
-            SA[l+1] = j;
-        }
-        else if (SA[l+1] == BH) {
-            if (SA[l+2] == E) {
-                SA[l] = j;
-                SA[l+2] = 1; // counter for the number of L-type suffixes put so far
-                
-                printf("case 1, initialized SA[%lu] = %lu, SA[%lu] = 1\n", l, j, l + 2);
-            }
-            else if (SA[l+2] == BT) { // not in the paper, nL=3, first to put in
-                SA[l] = j;
-                SA[l + 2] = R2; // not in the paper, but how I implemented it
-                printf("nL = 3, first to put in, initialized SA[%lu] = %lu, SA[%lu] = R2\n", l, j, l + 2);
-            }
-            else if (SA[l+2] == R2) { // not in the paper, nL=3, second to put in
-                SA[l + 1] = j;
-                SA[l + 2] = R1; // not in the paper, but how I implemented it
-                printf("nL = 3, second to put in, initialized SA[%lu] = %lu\n", l + 1, j);
-            }
-            else if (SA[l+2] == R1) {
-                SA[l+2] = j;
-                printf("nL = 3, third to put in, initialized SA[%lu] = %lu\n", l + 2, j);
-            }
-            else {
-                const unsigned long c = SA[l+2];
-                if (SA[l+c+2] == j != BT) {
-                    SA[l + c + 2] = j;
-                    SA[l + 2] = c + 1;
-                    printf("case 2 (1), initialized SA[%lu] = %lu, SA[%lu] = %lu\n", l + c + 2, j, l + 2, c + 1);
-                }
-                else {
-                    const unsigned long rL = l + 3 + c;
-                    std::move(SA + l + 3, SA + rL - 1, SA + l + 2);
-                    SA[rL - 1] = j;
-                    SA[l + 1] = R2;
-                    printf("case 2 (2), moved SA[%lu] to SA[%lu], initialized SA[%lu] = %lu, SA[%lu] = %lu\n", 
-                        l + 3, l + 2, rL - 1, j, l + 1, R2);
-                }
-            }
-        }
-        else if (SA[l+1] == R2) {
-            unsigned long rL = l + 2;
-            while (SA[rL] != BT) {
-                ++rL;
-            }
-            std::move(SA + l + 2, SA + rL - 1, SA + l + 1);
-            SA[rL - 1] = j;
-            SA[rL] = R1;
-            printf("case 3, moved SA[%lu] to SA[%lu], initialized SA[%lu] = %lu, SA[%lu] = %lu\n", 
-                l + 2, l + 1, rL - 1, j, rL, R1);
-        }
-        else {
-            case4(SA, l, j, length);
-        }
+        const unsigned long j = SA[i]; // TODO see SA[i] = 0 means the sentinel, so we take the last index
+        sortL_body(input, SA, length, usingLType, j);
     }
 }
 

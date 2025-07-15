@@ -28,6 +28,7 @@ unsigned long getS_SubstringEnd(const unsigned long * const input, const unsigne
     while (j < length-1 && input[j] >= input[j + 1]) {
         ++j;
     }
+    if (j == length-1) return length; // sentinel
 
     // find k
     unsigned long k = j;
@@ -69,7 +70,10 @@ int compare_substrings(const unsigned long * const input, unsigned long offsetA,
     }
 
     while (offsetA <= endA && offsetB <= endB) {
-        if (input[offsetA] != input[offsetB]) {
+        if (offsetA == length && offsetB == length) return 0;
+        else if (offsetA == length) return -1;
+        else if (offsetB == length) return 1;
+        else if (input[offsetA] != input[offsetB]) {
             return input[offsetA] - input[offsetB];
         }
         ++offsetA;
@@ -159,10 +163,22 @@ unsigned long custom_binary_search_old(const unsigned long * const input, const 
 unsigned long custom_binary_search(const unsigned long * const input, const unsigned long *array, const unsigned long length, const unsigned long value) {
     for (unsigned long i = 0; i < length; ++i) {
         // skips special symbols
-        
         cout << "comparing " << array[i] << " with " << value << endl;
         if (array[i] < length && input[array[i]] == value) {
             return i;
+        }
+    }
+    cout << "not found" << endl;
+    return length; // not found
+}
+
+// unoptimized search that is obviously correct O(n), for testing purposes
+unsigned long custom_binary_search_last(const unsigned long * const input, const unsigned long *array, const unsigned long length, const unsigned long value) {
+    for (unsigned long i = 0; i < length; ++i) {
+        // skips special symbols
+        cout << "comparing " << array[i] << " with " << value << endl;
+        if (array[i] < length && input[array[i]] > value) {
+            return i-1;
         }
     }
     cout << "not found" << endl;
@@ -378,17 +394,30 @@ void initializeSA(const unsigned long * const input, unsigned long *SA, const un
     // we scan T from right to left
     bool nextIsL = false;
     for (unsigned long i = 0; i < length; ++i) {
-        const unsigned long index = length - i - 1;
-        cout << index << endl;
+        unsigned long index = length - i - 1;
+        cout << "index: " << index << endl;
         const bool currentIsL = (index == length-1) || (input[index] > input[index+1] || (nextIsL && input[index] == input[index+1]));
         // for each scanning character T[i] which is L_TYPE, if bucket T[i] has not been initialized yet, we initialize it
         
         if ((currentIsL && !usingLType) || (!currentIsL && usingLType)) {
             //Let l denote the head of bucket T [i ] in SA (i.e. l is the smallest index in SA such that T [SA[l]] = T [i])
-            // We can ﬁnd l by searching T [i ] in SA (the search key for SA[i ] is T [SA[i ]]) using binary search.
-            const unsigned long l = custom_binary_search(input, SA, length, input[index]);
+            // We can find l by searching T [i ] in SA (the search key for SA[i ] is T [SA[i ]]) using binary search.
+            unsigned long l;
+            if (usingLType) {
+                l = custom_binary_search_last(input, SA, length, input[index]);
+            } 
+            else {
+                l = custom_binary_search(input, SA, length, input[index]);
+            }
             cout << "the smallest index l in SA such that T[SA[l]] = T[index] is " << l << endl;
-            if (SA[l+1] == BH || SA[l+1] == BT) {
+            if (usingLType && l == 0 || (!usingLType && l == length-1))
+            {
+                cout << "skipping because obviously this is the only suffix in this bucket and this is seen as an edge case." << endl;
+                continue;
+            }
+            const unsigned long position = usingLType ? l-1 : l+1;
+            const unsigned long further_position = usingLType ? l-2 : l+2;
+            if (SA[position] == BH || SA[position] == BT) {
                 // if the bucket is already initialized, we skip it
                 cout << "bucket initialized, skipping" << endl;
                 continue;
@@ -397,74 +426,194 @@ void initializeSA(const unsigned long * const input, unsigned long *SA, const un
             // we let rL denote the tail of L-suffixes in this bucket (i.e., rL is the largest index in SA such
             // that T[SA[rL]] = T[i] and T[SA[rL]] is L-type).
             unsigned long rL = l;
-            cout << "looking for rL, index=" << index << endl;
-            while (rL < length-1 && SA[rL] != index) {
-                cout << "SA[" << rL << "] = " << SA[rL] << endl;
-                ++rL;
+            if (usingLType) {
+                cout << "looking for rS, index=" << index << endl;
+                while (SA[rL] != index) {
+                    cout << "SA[" << rL << "] = " << SA[rL] << endl;
+                    --rL;
+                }
+            }
+            else {
+                cout << "looking for rL, index=" << index << endl;
+                while (rL < length-1 && SA[rL] != index) {
+                    cout << "SA[" << rL << "] = " << SA[rL] << endl;
+                    ++rL;
+                }
             }
 
             // Note that nL = rL - l + 1. Hence, it suffices to compute l and rL.
-            const unsigned long nL = rL - l + 1;
+            const unsigned long nL = ((usingLType) ? l - rL : rL-l) + 1; // TODO check
             cout << "initializing bucket T[" << index << "] with nL = " << nL << endl;
             if (nL == 2) {
-                SA[l+1] = BT;
+                SA[position] = BT;
             }
             else if (nL == 3) {
-                SA[l+1] = BH;
-                SA[l+2] = BT;
+                SA[position] = BH;
+                SA[further_position] = BT;
             }
             else if (nL > 3) {
-                SA[l + 1] = BH;
-                SA[l + 2] = E;
-                SA[l + nL - 1] = BT;
+                SA[position] = BH;
+                SA[further_position] = E;
+                if (usingLType) {
+                    SA[l - nL + 1] = BT; // TODO check
+                } 
+                else {
+                    SA[l + nL - 1] = BT;
+                }
             }
         }
         nextIsL = currentIsL;
     }
 }
 
-void case4(unsigned long *SA, unsigned long l, unsigned long j, unsigned long length) {
+void case4(const unsigned long * const input, unsigned long *SA, unsigned long l, unsigned long j, unsigned long length) {
     unsigned long rL = l;
 
-    // this check should be O(nL), how?
-    // once R1 is implemented for good it could be better than this, maybe even O(1):
-    // I'd like the special symbols to be implemented as five variables which value is
-    // the index of the (only) occurrence of the symbol in SA. Which is MAYBE better than
-    // what is done in the paper.
-    while (rL < length && SA[rL] != R1) {
+    while (rL < length && SA[rL] != R1 && input[SA[rL]] == input[l]) {
         ++rL;
     }
-    if (rL != length) {
+    if (rL != length && (SA[rL] == R1 || input[SA[rL]] == input[l])) {
         SA[rL] = j;
-        printf("case 4, initialized SA[%lu] = %lu\n", rL, j);
+        printf("case 4 (L), initialized SA[%lu] = %lu\n", rL, j);
     }
     else {
-        printf("case 4, no R1 found, skipping (either case nL=1 or current was not L-type).\n");
+        printf("case 4 (L), no R1 found, skipping (either case nL=1 or current was not L-type).\n");
     }
 }
 
-void sortL_body(const unsigned long * const input, unsigned long *SA, const unsigned long length, const bool usingLType, unsigned long j){
+void case4_S(const unsigned long * const input, unsigned long *SA, unsigned long l, unsigned long j, unsigned long length) {
+    unsigned long rL = l+1;
+
+    while (rL > 0 && SA[rL-1] != R1 && input[SA[rL-1]] == input[j]) {
+        --rL;
+    }
+    if (rL != 0 && input[SA[rL-1]] == input[j]) {
+        SA[rL-1] = j;
+        printf("case 4 (S), initialized SA[%lu] = %lu\n", rL, j);
+    }
+    else {
+        printf("case 4 (S), no R1 found, skipping (either case nS=1 or current was not S-type).\n");
+    }
+}
+
+void sortS_body(const unsigned long * const input, unsigned long *SA, const unsigned long length, unsigned long j){
+    unsigned long l = custom_binary_search_last(input, SA, length, input[j]); // modified to look for the last occurrence (TODO correct for non-contiguous alphabet)
+    printf("l = %lu, j = %lu\n", l, j);
+    
+    if (l == 0) {
+        cout << "skipping as edge case (clearly the only suffix in the bucket)" << endl;
+        return;
+    }
+    
+    // skip L type suffixes, this does not cover case 4 (but is always true for case 4)
+    // TODO see this condition
+    
+    if (j == length-1 || input[j] > input[j+1]) {
+        cout << "Skipping suffix with j=" << j << " because it is not S-type." << endl;
+        return;
+    }
+    else if (input[j] == input[j+1]) {
+        if (! (SA[l-1] == BH || SA[l-1] == R2 || SA[l-1] == R1) ) {
+            cout << "Skipping suffix with j=" << j << " because it is not S-type (I have already filled this bucket)." << endl;
+            if (SA[l-1] != BT && SA[l-1] != R1 && SA[l-1] != BH && SA[l-1] != R2) case4_S(input, SA, l, j, length);
+            return;
+        }
+    }
+    const unsigned long prev = SA[l-1]; // was l+1 for sortL_body
+    // nL = 2?
+    if (prev == BT) {
+        printf("nL = 2, first to put in.\n");
+        SA[l] = j;
+        SA[l-1] = R1; // not in the paper, but how I implemented it
+    }
+    else if (prev == R1) {
+        SA[l-1] = j;
+    }
+    else if (prev == BH) {
+        if (SA[l-2] == E) {
+            SA[l] = j;
+            SA[l-2] = 1; // counter for the number of L-type suffixes put so far
+            
+            printf("case 1, initialized SA[%lu] = %lu, SA[%lu] = 1\n", l, j, l - 2);
+        }
+        else if (SA[l-2] == BT) { // not in the paper, nL=3, first to put in
+            SA[l] = j;
+            SA[l - 2] = R2; // not in the paper, but how I implemented it
+            printf("nL = 3, first to put in, initialized SA[%lu] = %lu, SA[%lu] = R2\n", l, j, l - 2);
+        }
+        else if (SA[l-2] == R2) { // not in the paper, nL=3, second to put in
+            SA[l - 1] = j;
+            SA[l - 2] = R1; // not in the paper, but how I implemented it
+            printf("nL = 3, second to put in, initialized SA[%lu] = %lu\n", l - 1, j);
+        }
+        else if (SA[l-2] == R1) {
+            SA[l-2] = j;
+            printf("nL = 3, third to put in, initialized SA[%lu] = %lu\n", l - 2, j);
+        }
+        else {
+            const unsigned long c = SA[l-2];
+            if (SA[l-c-2] == j != BT) {
+                SA[l - c - 2] = j;
+                SA[l - 2] = c + 1;
+                printf("case 2 (1), initialized SA[%lu] = %lu, SA[%lu] = %lu\n", l - c - 2, j, l - 2, c + 1);
+            }
+            else {
+                const unsigned long rL = l - 3 - c; // TODO see
+                std::move(SA + l - 3, SA + rL + 1, SA + l - 2); // see
+                SA[rL + 1] = j;
+                SA[l - 1] = R2;
+                printf("case 2 (2), moved SA[%lu] to SA[%lu], initialized SA[%lu] = %lu, SA[%lu] = %lu\n", 
+                    l - 3, l - 2, rL + 1, j, l - 1, R2);
+            }
+        }
+    }
+    else if (prev == R2) {
+        unsigned long rL = l - 2;
+        while (SA[rL] != BT) {
+            --rL;
+        }
+        std::move(SA + l - 2, SA + rL - 1, SA + l - 1);
+        SA[rL - 1] = j;
+        SA[rL] = R1;
+        printf("case 3, moved SA[%lu] to SA[%lu], initialized SA[%lu] = %lu, SA[%lu] = R1\n", 
+            l - 2, l - 1, rL - 1, j, rL);
+    }
+    else {
+        case4_S(input, SA, l, j, length);
+    }
+}
+
+
+void sortL_body(const unsigned long * const input, unsigned long *SA, const unsigned long length, unsigned long j){
     unsigned long l = custom_binary_search(input, SA, length, input[j]); // TODO check if input[i] or input[j]
     printf("l = %lu, j = %lu\n", l, j);
+    if (l == length-1) {
+        cout << "skipping as edge case, clearly the only suffix in the bucket" << endl;
+    }
     
     // skip S type suffixes, this does not cover case 4 (but is always true for case 4)
     // TODO see this condition
     
-    if ((j != length-1 && input[j] < input[j+1] && !usingLType) || 
-        ((j == length-1 || input[j] > input[j+1]) && usingLType)) {
-        cout << "Skipping suffix with j=" << j << " because it is not the right type." << endl;
+    if (j != length-1 && input[j] < input[j+1]) {
+        cout << "Skipping suffix with j=" << j << " because it is not L-type." << endl;
         return;
     }
     else if (input[j] == input[j+1]) {
-        if (! (SA[l+1] == BH || SA[l+1] == R2) ) {
-            cout << "Skipping suffix with j=" << j << " because it is not the right type (I have already filled this bucket)." << endl;
-            if (SA[l+1] != BT && SA[l+1] != R1 && SA[l+1] != BH && SA[l+1] != R2) case4(SA, l, j, length);
+        if (! (SA[l+1] == BH || SA[l+1] == R2 || SA[l+1] == R1) ) {
+            if (SA[l+1] != BT && SA[l+1] != R1 && SA[l+1] != BH && SA[l+1] != R2) 
+            {
+                case4(input, SA, l, j, length);
+            }
+            else {
+                cout << "Skipping suffix with j=" << j << " because it is not L-type (I have already filled this bucket)." << endl;
+            }
             return;
         }
     }
     
     // nL = 2?
     if (SA[l+1] == BT) {
+        printf("nL = 2, first to put in.\n");
         SA[l] = j;
         SA[l+1] = R1; // not in the paper, but how I implemented it
     }
@@ -521,21 +670,15 @@ void sortL_body(const unsigned long * const input, unsigned long *SA, const unsi
             l + 2, l + 1, rL - 1, j, rL, R1);
     }
     else {
-        case4(SA, l, j, length);
+        case4(input, SA, l, j, length);
     }
 }
 
-// section 5.5 - step 2
-void sortL(const unsigned long * const input, unsigned long *SA, const unsigned long length, const bool usingLType) {
-    printf("Sorting L-type suffixes, length = %lu\n", length);
-    printf("BT = %lu, BH = %lu, E = %lu, R1 = %lu, R2 = %lu\n", BT, BH, E, R1, R2);
-    for (unsigned long i = 0; i < length; ++i) {
-        printf("input[%lu] = %lu, SA[%lu] = %lu\n", i, input[i], i, SA[i]);
-    }
+void sortS(const unsigned long * const input, unsigned long *SA, const unsigned long length) {
+    for (unsigned long iter = 1; iter <= length; ++iter) {
+        const unsigned long i = length - iter;
+        if (SA[i] == 0) continue;
 
-    sortL_body(input, SA, length, usingLType, length-1);
-
-    for (unsigned long i = 0; i < length; ++i) {
         cout << "i= " << i<<endl;
         cout << "input[i] = " << input[i] << endl;
         if (SA[i] == BT || SA[i] == BH || SA[i] == E || SA[i] == R1 || SA[i] == R2) {
@@ -546,9 +689,42 @@ void sortL(const unsigned long * const input, unsigned long *SA, const unsigned 
         // TODO all this method is wrong because the whole algorithm is meant to use the character at the end,
         // first thing, j should not be SA[i]-1 but SA[i].
         // second thing, the first j is always length-1 (because SA[0] is the character at the end, so length).
-        const unsigned long j = SA[i]; // TODO see SA[i] = 0 means the sentinel, so we take the last index
-        sortL_body(input, SA, length, usingLType, j);
+        const unsigned long j = SA[i]-1; // TODO see SA[i] = 0 means the sentinel, so we take the last index
+        sortS_body(input, SA, length, j);
     }
+}
+
+void sortL(const unsigned long * const input, unsigned long *SA, const unsigned long length) {
+    sortL_body(input, SA, length, length-1);
+    
+    for (unsigned long i = 0; i < length; ++i) {
+        if (SA[i] == 0) continue;
+
+        cout << "i= " << i<<endl;
+        cout << "input[i] = " << input[i] << endl;
+        if (SA[i] == BT || SA[i] == BH || SA[i] == E || SA[i] == R1 || SA[i] == R2) {
+            cout << "skipping index " << i << " because SA[i] is a special symbol." << endl;
+            continue;
+        }
+
+        // TODO all this method is wrong because the whole algorithm is meant to use the character at the end,
+        // first thing, j should not be SA[i]-1 but SA[i].
+        // second thing, the first j is always length-1 (because SA[0] is the character at the end, so length).
+        const unsigned long j = SA[i]-1; // TODO see SA[i] = 0 means the sentinel, so we take the last index
+        sortL_body(input, SA, length, j);
+    }
+}
+
+// section 5.5 - step 2
+// TODO for usingLType=true, go from right to left and keep the "rightmost free" instead of leftmost free
+void inducedSorting(const unsigned long * const input, unsigned long *SA, const unsigned long length, const bool usingLType) {
+    printf("Sorting suffixes of the other type, length = %lu\n", length);
+    printf("BT = %lu, BH = %lu, E = %lu, R1 = %lu, R2 = %lu\n", BT, BH, E, R1, R2);
+    for (unsigned long i = 0; i < length; ++i) {
+        printf("input[%lu] = %lu, SA[%lu] = %lu\n", i, input[i], i, SA[i]);
+    }
+    if (usingLType) sortS(input, SA, length);
+    else sortL(input, SA, length);
 }
 
 void optimalSuffixArray(const unsigned long * const input, unsigned long *SA, const unsigned long length) {
@@ -647,7 +823,7 @@ void optimalSuffixArray(const unsigned long * const input, unsigned long *SA, co
     printf("\n");
 
     // step 8
-    sortL(input, SA, length, usingLType);
+    inducedSorting(input, SA, length, usingLType);
     printf("Sorted L-type suffixes.\n");
     for (unsigned long i = 0; i < length; ++i) {
         printf("%lu ", SA[i]);

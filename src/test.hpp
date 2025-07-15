@@ -278,10 +278,6 @@ void aux_PrintTypeArray(const char *input_word, const unsigned long word_length)
 }
 
 void testOptimalSuffixArray(const char input_word[], const unsigned long word_length) {
-
-    aux_PrintTypeArray(input_word, word_length);
-    aux_PrintTypeArray("ACBD", 4);
-
     // get alphabet size
     const unsigned long alphabet_size = getAlphabetSize(input_word, word_length);
 

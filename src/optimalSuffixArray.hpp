@@ -163,7 +163,6 @@ unsigned long custom_binary_search_old(const unsigned long * const input, const 
 unsigned long custom_binary_search(const unsigned long * const input, const unsigned long *array, const unsigned long length, const unsigned long value) {
     for (unsigned long i = 0; i < length; ++i) {
         // skips special symbols
-        cout << "comparing " << array[i] << " with " << value << endl;
         if (array[i] < length && input[array[i]] == value) {
             return i;
         }
@@ -442,7 +441,7 @@ void initializeSA(const unsigned long * const input, unsigned long *SA, const un
             }
 
             // Note that nL = rL - l + 1. Hence, it suffices to compute l and rL.
-            const unsigned long nL = ((usingLType) ? l - rL : rL-l) + 1; // TODO check
+            const unsigned long nL = ((usingLType) ? l - rL : rL-l+1); // TODO check
             cout << "initializing bucket T[" << index << "] with nL = " << nL << endl;
             if (nL == 2) {
                 SA[position] = BT;
@@ -467,12 +466,14 @@ void initializeSA(const unsigned long * const input, unsigned long *SA, const un
 }
 
 void case4(const unsigned long * const input, unsigned long *SA, unsigned long l, unsigned long j, unsigned long length) {
-    unsigned long rL = l;
-
-    while (rL < length && SA[rL] != R1 && input[SA[rL]] == input[l]) {
+    unsigned long rL = l+1;
+    cout << "looking for R1, beginning at " << rL << endl;
+    while (rL < length && SA[rL] != R1 && (SA[rL] < length && input[SA[rL]] == input[j])) {
         ++rL;
+        cout << "at " << rL << endl;
     }
-    if (rL != length && (SA[rL] == R1 || input[SA[rL]] == input[l])) {
+    cout << "out with rL = " << rL;
+    if (rL != length && (SA[rL] == R1 || (SA[rL] < length && input[SA[rL]] == input[j]))) {
         SA[rL] = j;
         printf("case 4 (L), initialized SA[%lu] = %lu\n", rL, j);
     }

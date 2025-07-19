@@ -259,11 +259,19 @@ void mergeSort_Substrings(const unsigned long * const input, const unsigned long
 // updated to work on L-type suffixes as well
 void constructReducedProblem(const unsigned long * const input, const unsigned long length, unsigned long *SA, const unsigned long nS, const bool usingLType) {
     unsigned long currentChar = 0;
+    if (usingLType) {
+        currentChar = -6UL;
+    }
     SA[0] = currentChar;
 
     for (unsigned long i = length - nS + 1; i < length; ++i) {
         if (compare_substrings(input, SA[i-1], SA[i], length, usingLType) != 0) {
-            ++currentChar;
+            if (!usingLType) {
+                ++currentChar;
+            }
+            else { // TODO see, made sense to me
+                --currentChar;
+            }
         }
         SA[i - length + nS] = currentChar;
     }
@@ -416,7 +424,7 @@ void initializeSA(const unsigned long * const input, unsigned long *SA, const un
             }
             const unsigned long position = usingLType ? l-1 : l+1;
             const unsigned long further_position = usingLType ? l-2 : l+2;
-            if (SA[position] == BH || SA[position] == BT) {
+            if (SA[position] >= length) {
                 // if the bucket is already initialized, we skip it
                 cout << "bucket initialized, skipping" << endl;
                 continue;
@@ -427,7 +435,7 @@ void initializeSA(const unsigned long * const input, unsigned long *SA, const un
             unsigned long rL = l;
             if (usingLType) {
                 cout << "looking for rS, index=" << index << endl;
-                while (SA[rL] != index) {
+                while (rL != -1UL && input[SA[rL]] == input[SA[index]]) {
                     cout << "SA[" << rL << "] = " << SA[rL] << endl;
                     --rL;
                 }
@@ -484,11 +492,14 @@ void case4(const unsigned long * const input, unsigned long *SA, unsigned long l
 
 void case4_S(const unsigned long * const input, unsigned long *SA, unsigned long l, unsigned long j, unsigned long length) {
     unsigned long rL = l+1;
-
+    cout << "j was " << j << endl;
+    cout << "current rL = " << rL << endl;
     while (rL > 0 && SA[rL-1] != R1 && input[SA[rL-1]] == input[j]) {
         --rL;
+        cout << "going down" << endl;
     }
-    if (rL != 0 && input[SA[rL-1]] == input[j]) {
+    cout << "rL is " << rL << endl;
+    if (rL != 0 && SA[rL-1] == R1) {
         SA[rL-1] = j;
         printf("case 4 (S), initialized SA[%lu] = %lu\n", rL, j);
     }
@@ -498,7 +509,7 @@ void case4_S(const unsigned long * const input, unsigned long *SA, unsigned long
 }
 
 void sortS_body(const unsigned long * const input, unsigned long *SA, const unsigned long length, unsigned long j){
-    unsigned long l = custom_binary_search_last(input, SA, length, input[j]); // modified to look for the last occurrence (TODO correct for non-contiguous alphabet)
+    unsigned long l = custom_binary_search_last(input, SA, length, input[j]); // modified to look for the last occurrence
     printf("l = %lu, j = %lu\n", l, j);
     
     if (l == 0) {
@@ -553,31 +564,34 @@ void sortS_body(const unsigned long * const input, unsigned long *SA, const unsi
         }
         else {
             const unsigned long c = SA[l-2];
-            if (SA[l-c-2] == j != BT) {
+            if (SA[l-c-2] != BT) {
                 SA[l - c - 2] = j;
                 SA[l - 2] = c + 1;
                 printf("case 2 (1), initialized SA[%lu] = %lu, SA[%lu] = %lu\n", l - c - 2, j, l - 2, c + 1);
             }
             else {
-                const unsigned long rL = l - 3 - c; // TODO see
-                std::move(SA + l - 3, SA + rL + 1, SA + l - 2); // see
+                const unsigned long rL = l - 2 - c; // TODO see
+                cout << l << " " << rL << " " << c << endl;
+                std::move(SA + rL + 1, SA + l - 2, SA + rL + 2); // see
                 SA[rL + 1] = j;
                 SA[l - 1] = R2;
-                printf("case 2 (2), moved SA[%lu] to SA[%lu], initialized SA[%lu] = %lu, SA[%lu] = %lu\n", 
-                    l - 3, l - 2, rL + 1, j, l - 1, R2);
+                printf("case 2 (2), moved [SA[%lu], SA[%lu]) to SA[%lu], initialized SA[%lu] = %lu, SA[%lu] = R2\n", 
+                    rL + 1, l - 2, rL + 2, rL + 1, j, l - 1);
             }
         }
     }
     else if (prev == R2) {
+            cout << "here" << endl;
         unsigned long rL = l - 2;
         while (SA[rL] != BT) {
             --rL;
         }
-        std::move(SA + l - 2, SA + rL - 1, SA + l - 1);
-        SA[rL - 1] = j;
+        cout << "rL = " << rL << endl;
+        std::move(SA + rL + 1, SA + l - 1, SA + rL + 2);
+        SA[rL + 1] = j;
         SA[rL] = R1;
         printf("case 3, moved SA[%lu] to SA[%lu], initialized SA[%lu] = %lu, SA[%lu] = R1\n", 
-            l - 2, l - 1, rL - 1, j, rL);
+            rL + 1, rL + 2, rL + 1, j, rL);
     }
     else {
         case4_S(input, SA, l, j, length);
@@ -644,7 +658,7 @@ void sortL_body(const unsigned long * const input, unsigned long *SA, const unsi
         }
         else {
             const unsigned long c = SA[l+2];
-            if (SA[l+c+2] == j != BT) {
+            if (SA[l+c+2] != BT) {
                 SA[l + c + 2] = j;
                 SA[l + 2] = c + 1;
                 printf("case 2 (1), initialized SA[%lu] = %lu, SA[%lu] = %lu\n", l + c + 2, j, l + 2, c + 1);
@@ -681,17 +695,18 @@ void sortS(const unsigned long * const input, unsigned long *SA, const unsigned 
         if (SA[i] == 0) continue;
 
         cout << "i= " << i<<endl;
-        cout << "input[i] = " << input[i] << endl;
-        if (SA[i] == BT || SA[i] == BH || SA[i] == E || SA[i] == R1 || SA[i] == R2) {
+        if (SA[i] >= length) {
             cout << "skipping index " << i << " because SA[i] is a special symbol." << endl;
             continue;
         }
 
-        // TODO all this method is wrong because the whole algorithm is meant to use the character at the end,
-        // first thing, j should not be SA[i]-1 but SA[i].
-        // second thing, the first j is always length-1 (because SA[0] is the character at the end, so length).
-        const unsigned long j = SA[i]-1; // TODO see SA[i] = 0 means the sentinel, so we take the last index
+        const unsigned long j = SA[i]-1;
         sortS_body(input, SA, length, j);
+
+        for (unsigned long m = 0; m < length; ++m){
+            cout << SA[m] << " ";
+        }
+        cout << endl;
     }
 }
 
@@ -703,7 +718,7 @@ void sortL(const unsigned long * const input, unsigned long *SA, const unsigned 
 
         cout << "i= " << i<<endl;
         cout << "input[i] = " << input[i] << endl;
-        if (SA[i] == BT || SA[i] == BH || SA[i] == E || SA[i] == R1 || SA[i] == R2) {
+        if (SA[i] >= length) {
             cout << "skipping index " << i << " because SA[i] is a special symbol." << endl;
             continue;
         }

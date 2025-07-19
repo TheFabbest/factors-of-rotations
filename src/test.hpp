@@ -8,6 +8,16 @@
 #include "naiveSuffix.hpp"
 #include "optimalSuffixArray.hpp"
 
+void aux_PrintTypeArray(const char *input_word, const unsigned long word_length) {
+    bool *typeArray = new bool[word_length+1];
+    buildTypeArray(input_word, word_length, typeArray);
+    cout << "Type array for " << input_word << " is done." << endl;
+    for (unsigned long i = 0; i < word_length; ++i) {
+        cout << (typeArray[i] ? 'S' : 'L');
+    }
+    cout << endl;
+}
+
 void testForEachWordOfLength(const unsigned long length, const function<void (char[], unsigned long)> func) {
     char word[length+1];
     for (unsigned long i = 0; i < length; ++i) {
@@ -21,6 +31,7 @@ void testForEachWordOfLength(const unsigned long length, const function<void (ch
     for (int i = 0; i < limit; ++i)
     {
         if (i % print_step == 0) cout << word << endl;
+        aux_PrintTypeArray(word,length);
         func(word, length);
         int j = length-1;
         while(true) {
@@ -267,16 +278,6 @@ void testSAIS(const char input_word[], unsigned long word_length) {
     delete[] SA_naive;
 }
 
-void aux_PrintTypeArray(const char *input_word, const unsigned long word_length) {
-    bool *typeArray = new bool[word_length+1];
-    buildTypeArray(input_word, word_length, typeArray);
-    cout << "Type array for " << input_word << " is done." << endl;
-    for (unsigned long i = 0; i < word_length; ++i) {
-        cout << (typeArray[i] ? 'S' : 'L');
-    }
-    cout << endl;
-}
-
 void testOptimalSuffixArray(const char input_word[], const unsigned long word_length) {
     // get alphabet size
     const unsigned long alphabet_size = getAlphabetSize(input_word, word_length);
@@ -320,10 +321,11 @@ void testOptimalSuffixArray(const char input_word[], const unsigned long word_le
     for (unsigned long i = 0; i < word_length; ++i) {
         cout << SA[i] << " ";
     }
-
+    cout << endl;
     delete[] SA;
     delete[] SA_optimal;
     delete[] input_as_long;
+    cout << "done" << endl;
 }
 
 void testForSize(const unsigned long test_size) {

@@ -68,6 +68,18 @@ int compare_substrings(const unsigned long * const input, unsigned long offsetA,
         endA = getS_SubstringEnd(input, offsetA, length);
         endB = getS_SubstringEnd(input, offsetB, length);
     }
+    cout << "comparing ";
+    for (unsigned long i = offsetA; i <= endA; ++i) {
+        if (i < length) cout << input[i];
+        else cout << "e";
+    }
+    cout << " with ";
+    for (unsigned long i = offsetB; i <= endB; ++i) {
+        if (i < length) cout << input[i];
+        else cout << "e";
+    }
+    cout << endl;
+
 
     while (offsetA <= endA && offsetB <= endB) {
         if (offsetA == length && offsetB == length) return 0;
@@ -238,10 +250,11 @@ void mergeSort_Substrings(const unsigned long * const input, const unsigned long
     unsigned long *array = SA + length - nS;
 
     unsigned long step = 2;
-    while (step <= nS) {
+    while (step < nS) {
         for (unsigned long i = 0; i < nS; i += step) {
             unsigned long mid = i + step / 2;
             unsigned long end = std::min(i + step, nS);
+            cout << "mid: " << mid << " end: " << end << endl;
             std::merge(array + i, array + mid, array + mid, array + end, auxiliary, 
                        [input, length, usingLType](const unsigned long &a, const unsigned long &b) {
                            return compare_substrings(input, a, b, length, usingLType) < 0;
@@ -250,6 +263,14 @@ void mergeSort_Substrings(const unsigned long * const input, const unsigned long
         }
         step *= 2;
     }
+    unsigned long mid = step / 2;
+    unsigned long end = nS;
+    cout << "mid: " << mid << " end: " << end << endl;
+    merge(array, array + mid, array + mid, array + end, auxiliary, 
+                    [input, length, usingLType](const unsigned long &a, const unsigned long &b) {
+                        return compare_substrings(input, a, b, length, usingLType) < 0;
+                    });
+    copy(auxiliary, auxiliary + end, array);
 }
 
 // section 5.3 - step 1
@@ -407,8 +428,8 @@ void initializeSA(const unsigned long * const input, unsigned long *SA, const un
     cout << endl;
     // we scan T from right to left
     bool nextIsL = false;
-    bool is_in_the_word[] = {0,0,0,0,0};
-    bool has_l_type[] = {0,0,0,0,0};
+    bool is_in_the_word[] = {0,0,0,0,0,0,0,0,0,0,0,0};
+    bool has_l_type[] = {0,0,0,0,0,0,0,0,0,0,0,0};
     for (unsigned long i = 0; i < length; ++i) {
         unsigned long index = length - i - 1;
         is_in_the_word[input[index]-65] = true; // workaround TODO
@@ -478,7 +499,7 @@ void initializeSA(const unsigned long * const input, unsigned long *SA, const un
 
     // edge case where no L-type for bucket
     // uses aux memory for temp fix
-    for (unsigned long i = 0; usingLType && i < 5; ++i) {
+    for (unsigned long i = 0; usingLType && i < sizeof(has_l_type)/sizeof(has_l_type[0]); ++i) {
         if (is_in_the_word[i] && !has_l_type[i]) {
             const unsigned long l = custom_binary_search_last(input, SA, length, i+65);
             const unsigned long first = custom_binary_search(input, SA, length, i+65);
@@ -533,6 +554,8 @@ void case4_S(const unsigned long * const input, unsigned long *SA, unsigned long
     }
     else {
         printf("case 4 (S), no R1 found, skipping (either case nS=1 or current was not S-type).\n");
+        for (unsigned long i = 0; i < length; ++i) cout << (char)input[i];
+        cout << endl;
     }
 }
 
@@ -741,11 +764,8 @@ void sortS(const unsigned long * const input, unsigned long *SA, const unsigned 
 
         cout << "i= " << i<<endl;
         if (SA[i] >= length) {
-            if (SA[i] == R1) {
-                cout << "WORKAROUND" << endl;
-                if (SA[i+1] != 0) sortS_body(input, SA, length, SA[i+1]-1);
-                else SA[i] = length-1;
-            }
+            if (SA[i] == BH) ++iter; //skips counter
+            else if (SA[i] != R2) iter-=2;
             cout << "skipping index " << i << " because SA[i] is a special symbol." << endl;
             continue;
         }
@@ -770,10 +790,9 @@ void sortL(const unsigned long * const input, unsigned long *SA, const unsigned 
         cout << "i= " << i<<endl;
         cout << "input[i] = " << input[i] << endl;
         if (SA[i] >= length) {
-            if (SA[i] == R1) {
-                cout << "WORKAROUND" << endl;
-                if (SA[i-1] != 0) sortL_body(input, SA, length, SA[i-1]-1);
-                else SA[i] = length-1;
+            if (SA[i] == BH) ++i; //skips counter
+            if (SA[i] != R2) {
+                i-=2;
             }
             cout << "skipping index " << i << " because SA[i] is a special symbol." << endl;
             continue;
@@ -900,5 +919,6 @@ void optimalSuffixArray(const unsigned long * const input, unsigned long *SA, co
     for (unsigned long i = 0; i < length; ++i) {
         printf("%lu ", SA[i]);
     }
+
     printf("\n");
 }

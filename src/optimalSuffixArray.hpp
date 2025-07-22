@@ -337,7 +337,7 @@ void RestoreFromRecursion(const unsigned long * const input, const unsigned long
 void preprocess(const unsigned long * const input, unsigned long *SA, const unsigned long length, const unsigned long nS, const bool usingLType) {
     bool nextIsL = false;
     unsigned long last_inserted_index = length-nS;
-    if (usingLType) { // TODO CHECK URGENT!
+    if (usingLType) { // TODO CHECK URGENT! credo corretto
         move(SA+length-nS, SA+length, SA);
         last_inserted_index = length;
     }
@@ -407,13 +407,17 @@ void initializeSA(const unsigned long * const input, unsigned long *SA, const un
     cout << endl;
     // we scan T from right to left
     bool nextIsL = false;
+    bool is_in_the_word[] = {0,0,0,0,0};
+    bool has_l_type[] = {0,0,0,0,0};
     for (unsigned long i = 0; i < length; ++i) {
         unsigned long index = length - i - 1;
+        is_in_the_word[input[index]-65] = true; // workaround TODO
         cout << "index: " << index << endl;
         const bool currentIsL = (index == length-1) || (input[index] > input[index+1] || (nextIsL && input[index] == input[index+1]));
         // for each scanning character T[i] which is L_TYPE, if bucket T[i] has not been initialized yet, we initialize it
         
         if (currentIsL) {
+            has_l_type[input[index]-65] = true; // workaround TODO
             //Let l denote the head of bucket T [i ] in SA (i.e. l is the smallest index in SA such that T [SA[l]] = T [i])
             // We can find l by searching T [i ] in SA (the search key for SA[i ] is T [SA[i ]]) using binary search.
             unsigned long l;
@@ -473,36 +477,25 @@ void initializeSA(const unsigned long * const input, unsigned long *SA, const un
     }
 
     // edge case where no L-type for bucket
-    if (usingLType) {
-        nextIsL = false;
-        for (unsigned long i = 0; i < length; ++i) {
-            unsigned long index = length - i - 1;
-            cout << "index: " << index << endl;
-            const bool currentIsL = (index == length-1) || (input[index] > input[index+1] || (nextIsL && input[index] == input[index+1]));
-            if (!currentIsL) {
-                unsigned long l = custom_binary_search_last(input, SA, length, input[index]);
-                const unsigned long first = custom_binary_search(input, SA, length, input[index]);
-                if (first == index || SA[l-1] >= length) {
-                    // if the bucket is already initialized, we skip it
-                    cout << "bucket initialized, skipping" << endl;
-                    continue;
-                }
-                unsigned long nS = l - first + 1;
-                cout << "initialization for edge case bucket " << input[index] << ", nS = " << nS << endl;
-                if (nS == 2) {
-                    SA[l-1] = BT;
-                }
-                else if (nS == 3) {
-                    SA[l-1] = BH;
-                    SA[l-2] = BT;
-                }
-                else if (nS > 3) {
-                    SA[l-1] = BH;
-                    SA[l-2] = E;
-                    SA[l - nS + 1] = BT; // TODO check
-                }
+    // uses aux memory for temp fix
+    for (unsigned long i = 0; usingLType && i < 5; ++i) {
+        if (is_in_the_word[i] && !has_l_type[i]) {
+            const unsigned long l = custom_binary_search_last(input, SA, length, i+65);
+            const unsigned long first = custom_binary_search(input, SA, length, i+65);
+            const unsigned long nL = l - first + 1;
+            cout << "initializing bucket " << i+65 << " with nL = " << nL << endl;
+            if (nL == 2) {
+                SA[l-1] = BT;
             }
-            nextIsL = currentIsL;
+            else if (nL == 3) {
+                SA[l-1] = BH;
+                SA[l-2] = BT;
+            }
+            else if (nL > 3) {
+                SA[l-1] = BH;
+                SA[l-2] = E;
+                SA[l - nL + 1] = BT;
+            }
         }
     }
 }
@@ -567,6 +560,7 @@ void sortS_body(const unsigned long * const input, unsigned long *SA, const unsi
         }
     }
     const unsigned long prev = SA[l-1]; // was l+1 for sortL_body
+    cout << prev << endl;
     // nL = 2?
     if (prev == BT) {
         printf("nL = 2, first to put in.\n");
@@ -643,7 +637,6 @@ void sortL_body(const unsigned long * const input, unsigned long *SA, const unsi
     
     // skip S type suffixes, this does not cover case 4 (but is always true for case 4)
     // TODO see this condition
-    
     if (j != length-1 && input[j] < input[j+1]) {
         cout << "Skipping suffix with j=" << j << " because it is not L-type." << endl;
         return;
@@ -660,7 +653,8 @@ void sortL_body(const unsigned long * const input, unsigned long *SA, const unsi
             return;
         }
     }
-    
+    cout << SA[l+1]
+     << endl;
     // nL = 2?
     if (SA[l+1] == BT) {
         printf("nL = 2, first to put in.\n");
@@ -699,25 +693,41 @@ void sortL_body(const unsigned long * const input, unsigned long *SA, const unsi
                 printf("case 2 (1), initialized SA[%lu] = %lu, SA[%lu] = %lu\n", l + c + 2, j, l + 2, c + 1);
             }
             else {
-                const unsigned long rL = l + 3 + c;
-                std::move(SA + l + 3, SA + rL - 1, SA + l + 2);
+                for (unsigned long i = 0; i < length; ++i) {
+                    cout << SA[i] << " ";
+                }
+                cout << endl;
+                const unsigned long rL = l + 2 + c;
+                std::move(SA + l + 3, SA + rL, SA + l + 2);
                 SA[rL - 1] = j;
                 SA[l + 1] = R2;
-                printf("case 2 (2), moved SA[%lu] to SA[%lu], initialized SA[%lu] = %lu, SA[%lu] = %lu\n", 
-                    l + 3, l + 2, rL - 1, j, l + 1, R2);
+                printf("case 2 (2), moved SA[%lu] to SA[%lu], initialized SA[%lu] = %lu, SA[%lu] = R2\n", 
+                    l + 3, l + 2, rL - 1, j, l + 1);
+                for (unsigned long i = 0; i < length; ++i) {
+                    cout << SA[i] << " ";
+                }
+                cout << endl;
             }
         }
     }
     else if (SA[l+1] == R2) {
         unsigned long rL = l + 2;
-        while (SA[rL] != BT) {
+        while (rL != length-1 && SA[rL] != BT) {
             ++rL;
         }
-        std::move(SA + l + 2, SA + rL - 1, SA + l + 1);
+                for (unsigned long i = 0; i < length; ++i) {
+                    cout << SA[i] << " ";
+                }
+                cout << endl;
+        std::move(SA + l + 2, SA + rL, SA + l + 1);
         SA[rL - 1] = j;
         SA[rL] = R1;
         printf("case 3, moved SA[%lu] to SA[%lu], initialized SA[%lu] = %lu, SA[%lu] = %lu\n", 
             l + 2, l + 1, rL - 1, j, rL, R1);
+                for (unsigned long i = 0; i < length; ++i) {
+                    cout << SA[i] << " ";
+                }
+                cout << endl;
     }
     else {
         case4(input, SA, l, j, length);
@@ -760,6 +770,11 @@ void sortL(const unsigned long * const input, unsigned long *SA, const unsigned 
         cout << "i= " << i<<endl;
         cout << "input[i] = " << input[i] << endl;
         if (SA[i] >= length) {
+            if (SA[i] == R1) {
+                cout << "WORKAROUND" << endl;
+                if (SA[i-1] != 0) sortL_body(input, SA, length, SA[i-1]-1);
+                else SA[i] = length-1;
+            }
             cout << "skipping index " << i << " because SA[i] is a special symbol." << endl;
             continue;
         }

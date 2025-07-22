@@ -22,6 +22,7 @@ int main() {
     testForEachWordOfLength(3, testOptimalSuffixArray);
     testForEachWordOfLength(4, testOptimalSuffixArray);
     testForEachWordOfLength(5, testOptimalSuffixArray);
+    testForEachWordOfLength(6, testOptimalSuffixArray);
     const char word[] = "AABABBBAABABBC";
     const unsigned long word_length = (sizeof(word) / sizeof(char)) - 1;
     PrintAllFactors(word, word_length);

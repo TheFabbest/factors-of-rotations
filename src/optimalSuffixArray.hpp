@@ -89,7 +89,6 @@ int compare_substrings(const unsigned long * const input, unsigned long offsetA,
 
     while (offsetA < endA && offsetB < endB) {
         if (input[offsetA] != input[offsetB]) {
-            cout << "here" << endl;
             if (input[offsetA] < input[offsetB]) {
                 cout << "returning -1" << endl;
                 return -1;
@@ -259,7 +258,8 @@ unsigned long custom_binary_search_old(const unsigned long * const input, const 
 unsigned long custom_binary_search(const unsigned long * const input, const unsigned long *array, const unsigned long length, const unsigned long value) {
     for (unsigned long i = 0; i < length; ++i) {
         // skips special symbols
-        if (array[i] < length && input[array[i]] == value) {
+        if (array[i] == BH) ++i; // skips counter
+        else if (array[i] < length && input[array[i]] == value) {
             return i;
         }
     }
@@ -271,13 +271,14 @@ unsigned long custom_binary_search(const unsigned long * const input, const unsi
 unsigned long custom_binary_search_last(const unsigned long * const input, const unsigned long *array, const unsigned long length, const unsigned long value) {
     for (unsigned long i = 0; i < length; ++i) {
         // skips special symbols
-        cout << "comparing " << array[i] << " with " << value << endl;
         if (array[i] < length) cout << input[array[i]] << endl;
 
         // i != length-1 && array[i] != BH is to skip counters
         if (array[i] < length && (i == length-1 || array[i+1] != BH) && input[array[i]] > value) {
             --i;
-            while(array[i] >= length) --i;
+            while(array[i] >= length || array[i+1] == BH) {
+                --i;
+            }
             return i;
         }
     }
@@ -413,16 +414,6 @@ void RestoreFromRecursion(const unsigned long * const input, const unsigned long
     // recursion (TODO in O(1) space)
     optimalSuffixArray(SA, SA+length-nS, nS);
 
-    cout << "out of recursion, SA: ";
-    for (unsigned long i = 0; i < length; ++i) {
-        cout << SA[i] << " ";
-    }
-    cout << endl << "output from recursion: ";
-    for (unsigned long i = length-nS; i < length; ++i) {
-        cout << SA[i] << " ";
-    }
-    cout << endl;
-
     // restore
     bool nextIsL = false;
     unsigned long sum = 0;
@@ -437,7 +428,6 @@ void RestoreFromRecursion(const unsigned long * const input, const unsigned long
     }
 
     for (unsigned long i = length-nS; i < length; ++i) {
-        cout << "SA[" << i << "] = " << SA[i] << endl;
         SA[i] = SA[SA[i]];
     }
 }
@@ -452,16 +442,9 @@ void preprocess(const unsigned long * const input, unsigned long *SA, const unsi
     for (unsigned long i = 0; i < length; ++i) {
         const unsigned long index = length - i - 1;
         const bool currentIsL = (index == length-1) || (input[index] > input[index+1] || (nextIsL && input[index] == input[index+1]));
-        if (currentIsL) {
-            cout << index << " is L-type" << endl;
-        }
-        else {
-            cout << index << " is S-type" << endl;
-        }
 
         if ((currentIsL && !usingLType) || (!currentIsL && usingLType)) {
             SA[--last_inserted_index] = index;
-            cout << "putting " << index << " in SA[" << last_inserted_index << "]" << endl;
         }
         nextIsL = currentIsL;
     }
@@ -555,17 +538,11 @@ void initializeSA(const unsigned long * const input, unsigned long *SA, const un
             cout << "RL: " << rL;
 
             // Note that nL = rL - l + 1. Hence, it suffices to compute l and rL.
-            const unsigned long nL = ((usingLType) ? rL - first + 1 : rL-l+1); // TODO check
+            const unsigned long nL = ((usingLType) ? rL - first + 1 : rL-l+1);
 
-            if (usingLType) { // TODO CHECK URGENT! credo corretto
-                cout << "MOVING" << endl;
-                for (unsigned long i = 0; i < length; i++) cout << SA[i] << " ";
-                cout << endl;
+            if (usingLType) {
                 // s-types (left) and l-types (right) must be swapped
                 rotate(SA+first, SA+first+nL, SA+l+1);
-
-                for (unsigned long i = 0; i < length; i++) cout << SA[i] << " ";
-                cout << endl;
             }
 
             cout << "initializing bucket T[" << index << "] with nL = " << nL << endl;
@@ -613,9 +590,8 @@ void case4_S(const unsigned long * const input, unsigned long *SA, unsigned long
     cout << "j was " << j << endl;
     cout << "current rL = " << rL << endl;
     while (rL > 0 && SA[rL-1] != R1 && input[SA[rL-1]] == input[j]) {
-        cout << SA[rL-1] << " is not R1" << endl;
+        cout << SA[rL-1] << " is not R1, going down" << endl;
         --rL;
-        cout << "going down" << endl;
     }
     cout << "rL is " << rL << endl;
     if (rL != 0 && SA[rL-1] == R1) {
@@ -624,8 +600,6 @@ void case4_S(const unsigned long * const input, unsigned long *SA, unsigned long
     }
     else {
         printf("case 4 (S), no R1 found, skipping (either case nS=1 or current was not S-type).\n");
-        for (unsigned long i = 0; i < length; ++i) cout << (char)input[i];
-        cout << endl;
     }
 }
 
@@ -653,7 +627,7 @@ void sortS_body(const unsigned long * const input, unsigned long *SA, const unsi
         }
     }
     const unsigned long prev = SA[l-1]; // was l+1 for sortL_body
-    cout << prev << endl;
+    
     // nL = 2?
     if (prev == BT) {
         printf("nL = 2, first to put in.\n");
@@ -693,7 +667,6 @@ void sortS_body(const unsigned long * const input, unsigned long *SA, const unsi
             }
             else {
                 const unsigned long rL = l - 2 - c; // TODO see
-                cout << l << " " << rL << " " << c << endl;
                 std::move(SA + rL + 1, SA + l - 2, SA + rL + 2); // see
                 SA[rL + 1] = j;
                 SA[l - 1] = R2;
@@ -703,7 +676,6 @@ void sortS_body(const unsigned long * const input, unsigned long *SA, const unsi
         }
     }
     else if (prev == R2) {
-            cout << "here" << endl;
         unsigned long rL = l - 2;
         while (SA[rL] != BT) {
             --rL;
@@ -746,8 +718,7 @@ void sortL_body(const unsigned long * const input, unsigned long *SA, const unsi
             return;
         }
     }
-    cout << SA[l+1]
-     << endl;
+    
     // nL = 2?
     if (SA[l+1] == BT) {
         printf("nL = 2, first to put in.\n");
@@ -786,20 +757,12 @@ void sortL_body(const unsigned long * const input, unsigned long *SA, const unsi
                 printf("case 2 (1), initialized SA[%lu] = %lu, SA[%lu] = %lu\n", l + c + 2, j, l + 2, c + 1);
             }
             else {
-                for (unsigned long i = 0; i < length; ++i) {
-                    cout << SA[i] << " ";
-                }
-                cout << endl;
                 const unsigned long rL = l + 2 + c;
                 std::move(SA + l + 3, SA + rL, SA + l + 2);
                 SA[rL - 1] = j;
                 SA[l + 1] = R2;
                 printf("case 2 (2), moved SA[%lu] to SA[%lu], initialized SA[%lu] = %lu, SA[%lu] = R2\n", 
                     l + 3, l + 2, rL - 1, j, l + 1);
-                for (unsigned long i = 0; i < length; ++i) {
-                    cout << SA[i] << " ";
-                }
-                cout << endl;
             }
         }
     }
@@ -808,19 +771,11 @@ void sortL_body(const unsigned long * const input, unsigned long *SA, const unsi
         while (rL != length-1 && SA[rL] != BT) {
             ++rL;
         }
-                for (unsigned long i = 0; i < length; ++i) {
-                    cout << SA[i] << " ";
-                }
-                cout << endl;
         std::move(SA + l + 2, SA + rL, SA + l + 1);
         SA[rL - 1] = j;
         SA[rL] = R1;
         printf("case 3, moved SA[%lu] to SA[%lu], initialized SA[%lu] = %lu, SA[%lu] = %lu\n", 
             l + 2, l + 1, rL - 1, j, rL, R1);
-                for (unsigned long i = 0; i < length; ++i) {
-                    cout << SA[i] << " ";
-                }
-                cout << endl;
     }
     else {
         case4(input, SA, l, j, length);

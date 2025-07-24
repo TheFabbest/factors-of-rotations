@@ -73,35 +73,19 @@ int compare_substrings(const unsigned long * const input, unsigned long offsetA,
         endB = getS_SubstringEnd(input, offsetB, length);
     }
 
-    cout << "called on substrings beginning at " << offsetA << " and " << offsetB << endl;
-    cout << endA << " " << endB << " are the ends" << endl;
-    cout << "comparing ";
-    for (unsigned long i = offsetA; i <= endA; ++i) {
-        if (i < length) cout << input[i];
-        else cout << "e";
-    }
-    cout << " with ";
-    for (unsigned long i = offsetB; i <= endB; ++i) {
-        if (i < length) cout << input[i];
-        else cout << "e";
-    }
-    cout << endl;
-
     while (offsetA < endA && offsetB < endB) {
         if (input[offsetA] != input[offsetB]) {
             if (input[offsetA] < input[offsetB]) {
-                cout << "returning -1" << endl;
                 return -1;
             }
             else {
-                cout << "returning 1" << endl;
                 return 1;
             }
         }
         ++offsetA;
         ++offsetB;
     }
-    cout << "out of the loop with " << offsetA << " " << offsetB << endl;
+    
     if (offsetA == length && offsetB == length) return 0;
     else if (offsetA == length) return -1;
     else if (offsetB == length) return 1;
@@ -116,73 +100,6 @@ int compare_substrings(const unsigned long * const input, unsigned long offsetA,
             return 0;
         }
     }
-}
-
-// ordinamento omega, alla fine della stringa si torna indietro (circolare, infinito)
-int compare_substrings_infinite(const unsigned long * const input, unsigned long offsetA, unsigned long offsetB, const unsigned long length, const bool usingLType) {
-    unsigned long endA, endB;
-    const unsigned long oldOffsetA = offsetA;
-    const unsigned long oldOffsetB = offsetB;
-    if (usingLType) {
-        // TODO see, assume the last L-substring only contains one character, which is the last one.
-        if (offsetA == length-1) {
-            endA = offsetA;
-        }
-        else {
-            endA = getL_SubstringEnd(input, offsetA, length);
-        }
-        if (offsetB == length-1) {
-            endB = offsetB;
-        }
-        else {
-            endB = getL_SubstringEnd(input, offsetB, length);
-        }
-    } else {
-        endA = getS_SubstringEnd(input, offsetA, length);
-        endB = getS_SubstringEnd(input, offsetB, length);
-    }
-
-    // cout << "called on substrings beginning at " << offsetA << " and " << offsetB << endl;
-    // cout << endA << " " << endB << " are the ends" << endl;
-    // cout << "comparing ";
-    // for (unsigned long i = offsetA; i <= endA; ++i) {
-    //     if (i < length) cout << input[i];
-    //     else cout << "e";
-    // }
-    // cout << " with ";
-    // for (unsigned long i = offsetB; i <= endB; ++i) {
-    //     if (i < length) cout << input[i];
-    //     else cout << "e";
-    // }
-    // cout << endl;
-
-
-    for (unsigned long i = 0; i <= (1+endA-offsetA) * (1+endB-offsetB); ++i) {
-        cout << "comparing " << offsetA << " with " << offsetB << endl;
-        if (offsetA == length && offsetB == length) return 0;
-        else if (offsetA == length) return -1;
-        else if (offsetB == length) return 1;
-        else if (input[offsetA] != input[offsetB]) {
-            cout << "here" << endl;
-            if (input[offsetA] < input[offsetB]) {
-                cout << "returning -1" << endl;
-                return -1;
-            }
-            else {
-                cout << "returning 1" << endl;
-                return 1;
-            }
-        }
-        ++offsetA;
-        ++offsetB;
-        if (offsetA > endA) {
-            offsetA = oldOffsetA;
-        }
-        if (offsetB > endB) {
-            offsetB = oldOffsetB;
-        }
-    }
-    return 0;
 }
 
 void Heapify(unsigned long *SA, unsigned long *array, unsigned long length, unsigned long index) {
@@ -786,15 +703,19 @@ void sortS(const unsigned long * const input, unsigned long *SA, const unsigned 
         if (SA[i] == 0) continue;
 
         cout << "i= " << i<<endl;
+
+        // does this ever happen? Should this happen?
         if (SA[i] >= length) {
             if (SA[i] == BH) ++iter; //skips counter
-            //else if (SA[i] != R2) iter-=2;
             cout << "skipping index " << i << " because SA[i] is a special symbol." << endl;
+            cin.get();
             continue;
         }
 
         unsigned long j = SA[i]-1;
         sortS_body(input, SA, length, j);
+        
+        // does this ever happen? Should this happen?
         while (SA[i]-1 != j && SA[i] < length && SA[i] != 0) // changed current, repeat.
         {
             cout << "REPEATING" << endl;
@@ -819,12 +740,12 @@ void sortL(const unsigned long * const input, unsigned long *SA, const unsigned 
 
         cout << "i= " << i<<endl;
         cout << "input[i] = " << input[i] << endl;
+
+        // does this ever happen? Should this happen?
         if (SA[i] >= length) {
             if (SA[i] == BH) ++i; //skips counter
-            // else if (SA[i] != R2) {
-            //     i-=2;
-            // }
             cout << "skipping index " << i << " because SA[i] is a special symbol." << endl;
+            cin.get();
             continue;
         }
 
@@ -834,6 +755,7 @@ void sortL(const unsigned long * const input, unsigned long *SA, const unsigned 
         unsigned long j = SA[i]-1; // TODO see SA[i] = 0 means the sentinel, so we take the last index
         sortL_body(input, SA, length, j);
 
+        // does this ever happen? Should this happen?
         while (SA[i]-1 != j && SA[i] < length && SA[i] != 0) // changed current, repeat.
         {
             cout << "REPEATING" << endl;

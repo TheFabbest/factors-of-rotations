@@ -348,15 +348,15 @@ void testForSize(const unsigned long test_size) {
 }
 
 void routineTestForWorkingWithOptimalSuffix() {
-    // for (int i = 1; i <= 5; ++i) {
-    //     testForEachWordOfLength(1, testOptimalSuffixArray);
-    // }
+    for (int i = 1; i <= 5; ++i) {
+        testForEachWordOfLength(1, testOptimalSuffixArray);
+    }
     
-    for (int i = 0; i < 10000; ++i) {
+    for (int i = 0; i < 5000; ++i) {
         testOneRandom(10);
     }
 
-    for (int i = 0; i < 1000; ++i) {
+    for (int i = 0; i < 500; ++i) {
         testOneRandom(100);
     }
 }

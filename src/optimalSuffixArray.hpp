@@ -798,6 +798,7 @@ void sortS(const unsigned long * const input, unsigned long *SA, const unsigned 
         while (SA[i]-1 != j && SA[i] < length && SA[i] != 0) // changed current, repeat.
         {
             cout << "REPEATING" << endl;
+            cin.get();
             j = SA[i]-1;
             sortS_body(input, SA, length, j);
         }
@@ -836,6 +837,7 @@ void sortL(const unsigned long * const input, unsigned long *SA, const unsigned 
         while (SA[i]-1 != j && SA[i] < length && SA[i] != 0) // changed current, repeat.
         {
             cout << "REPEATING" << endl;
+            cin.get();
             j = SA[i]-1;
             sortL_body(input, SA, length, j);
         }

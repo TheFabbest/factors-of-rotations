@@ -78,8 +78,7 @@ void testOneRandom(const unsigned long SIZE){
             for (unsigned long j = 0; j < SIZE; ++j){
                 cout << SA_naive[j] << " ";
             }
-            int n;
-            cin >> n;
+            cin.get();
         }
     }
     
@@ -135,8 +134,7 @@ void testFactorsLyn(const char input_word[], const unsigned long word_length) {
         cout << "ERROR: " << word << endl;
         cout << factors_from_lyn << endl;
         cout << factors_from_right_tree << endl;
-        int n;
-        cin >> n;
+        cin.get();
     }
 
     delete[] (SA-1);
@@ -184,8 +182,7 @@ void testFactorsLynS(const char input_word[], const unsigned long word_length) {
         cout << "ERROR: " << word << endl;
         cout << factors_from_lynS << endl;
         cout << factors_from_left_tree << endl;
-        int n;
-        cin >> n;
+        cin.get();
     }
 
     delete leftTree;
@@ -203,16 +200,14 @@ void propertyTest1(const char word[], unsigned long word_length) {
                 cout << "ERROR: " << word << endl;
                 cout << i << " " << j << endl;
                 cout << rank[i] << " > " << rank[j] << endl;
-                int n;
-                cin >> n;
+                cin.get();
             }
         }
         if (i+Lyn[i] < word_length && rank[i] < rank[i+Lyn[i]]) {
             cout << "ERROR: " << word << endl;
             cout << i << " " << i+Lyn[i] << endl;
             cout << rank[i] << " < " << rank[i+Lyn[i]] << endl;
-            int n;
-            cin >> n;
+            cin.get();
         }
     }
 
@@ -243,8 +238,7 @@ void propertyTest2(const char input_word[], unsigned long word_length) {
                     for (unsigned long k = 0; k < word_length; ++k) cout << rank[k] << " ";
                     cout << index_first << " " << index_second << endl;
                     cout << rank[index_first] << " > " << rank[index_second] << endl;
-                    int n;
-                    cin >> n;
+                    cin.get();
                 }
             }
             i+= factor.length();
@@ -279,8 +273,7 @@ void testSAIS(const char input_word[], unsigned long word_length) {
                 cout << SA_naive[j] << " ";
             }
             cout << endl;
-            int n;
-            cin >> n;
+            cin.get();
         }
     }
 
@@ -320,8 +313,7 @@ void testOptimalSuffixArray(const char input_word[], const unsigned long word_le
                 cout << SA_optimal[j] << " ";
             }
             cout << endl;
-            int n;
-            cin >> n;
+            cin.get();
         }
     }
     cout << "Optimal Suffix Array for " << input_word << " is correct." << endl;

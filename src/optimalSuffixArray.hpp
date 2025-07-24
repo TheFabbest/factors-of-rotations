@@ -157,23 +157,33 @@ unsigned long custom_binary_search(const unsigned long * const input, const unsi
     return left;
 }
 
-// unoptimized search that is obviously correct O(n), for testing purposes
-unsigned long custom_binary_search_last(const unsigned long * const input, const unsigned long *array, const unsigned long length, const unsigned long value) {
-    for (unsigned long i = 0; i < length; ++i) {
-        // skips special symbols
-        // (i == length-1 || array[i+1] != BH) is to skip counters
-        if (array[i] < length && (i == length-1 || array[i+1] != BH) && input[array[i]] > value) {
-            --i;
-            while(array[i] >= length || array[i+1] == BH) {
-                --i;
-            }
-            return i;
+// TODO only used with usingLType = true.
+unsigned long custom_binary_search_last(const unsigned long * const input, const unsigned long *array, const unsigned long length, const unsigned long value, const bool usingLType) {
+    unsigned long left = 0;
+    unsigned long right = length - 1;
+
+    auto is_valid = [array, length, usingLType](unsigned long index) {return array[index] < length && (usingLType || index == 0 || array[index-1] != BH) && (!usingLType || index == length-1 || array[index+1] != BH);};
+    
+    while (right > left)
+    {
+        const unsigned long mid = left + (right - left) / 2 + ((right-left)%2);
+        unsigned long checking = mid;
+        while (checking < right && !is_valid(checking)) {
+            ++checking;
+        }
+        cout << left << " to " << right << "; mid = " << mid << "; checking = " << checking << endl;
+        const unsigned long current = input[array[checking]];
+        if (is_valid(checking) && current <= value)
+        {
+            left = checking;
+        }
+        else {
+            right = mid-1;
         }
     }
-    cout << "not found" << endl;
-    return length-1; // not found
+    if (input[array[right]] != value) return length;
+    return right;
 }
-
 // end of auxiliary functions -----
 
 void optimalSuffixArray(const unsigned long * const input, unsigned long *SA, const unsigned long length);
@@ -394,7 +404,7 @@ void initializeSA(const unsigned long * const input, unsigned long *SA, const un
             unsigned long l;
             unsigned long first = custom_binary_search(input, SA, length, input[index], usingLType);
             if (usingLType) {
-                l = custom_binary_search_last(input, SA, length, input[index]);
+                l = custom_binary_search_last(input, SA, length, input[index], true);
             } 
             else {
                 l = first;
@@ -492,7 +502,7 @@ void case4_S(const unsigned long * const input, unsigned long *SA, unsigned long
 }
 
 void sortS_body(const unsigned long * const input, unsigned long *SA, const unsigned long length, unsigned long j){
-    unsigned long l = custom_binary_search_last(input, SA, length, input[j]); // modified to look for the last occurrence
+    unsigned long l = custom_binary_search_last(input, SA, length, input[j], true); // modified to look for the last occurrence
     printf("l = %lu, j = %lu\n", l, j);
     
     if (l == 0) {

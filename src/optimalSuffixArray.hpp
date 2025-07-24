@@ -131,57 +131,30 @@ void BuildHeap(unsigned long *SA, const unsigned long length, const unsigned lon
 }
 
 // modified binary search that returns the first occurrence of the value
-// todo optimize
-unsigned long custom_binary_search_old(const unsigned long * const input, const unsigned long *array, const unsigned long length, const unsigned long value) {
+unsigned long custom_binary_search(const unsigned long * const input, const unsigned long *array, const unsigned long length, const unsigned long value, const bool usingLType) {
     unsigned long left = 0;
     unsigned long right = length - 1;
+
+    auto is_valid = [array, length, usingLType](unsigned long index) {return array[index] < length && (usingLType || index == 0 || array[index-1] != BH) && (!usingLType || index == length-1 || array[index+1] != BH);};
+    
     while (right > left)
     {
-        unsigned long mid = left + ((right-left) / 2);
-        // max two consecutive symbols (BT, BH etc.) (during initialization)
-        while (array[mid] == BT || array[mid] == BH || array[mid] == E || array[mid] == R1 || array[mid] == R2) {
-            if (mid > left) {
-                if (mid == right) --right;
-                --mid;
-            }
-            else {
-                break;
-            }
+        const unsigned long mid = left + ((right - left) / 2);
+        unsigned long checking = mid;
+        while (checking > left && !is_valid(checking)) {
+            --checking;
         }
-        if (mid == left || input[array[mid]] < value) {
-            if (!(array[mid] == BT || array[mid] == BH || array[mid] == E || array[mid] == R1 || array[mid] == R2)
-                    && input[array[mid]] < value) {
-                if (mid == left) ++left;
-                ++mid;
-            }
-            while (array[mid] == BT || array[mid] == BH || array[mid] == E || array[mid] == R1 || array[mid] == R2) {
-                ++mid;
-            }
-        }
-
-        if (input[array[mid]] >= value)
+        const unsigned long current = input[array[checking]];
+        if (is_valid(checking) && current >= value)
         {
-            right = mid;
+            right = checking;
         }
-        else
-        {
-            left = mid + 1;
+        else {
+            left = mid+1;
         }
     }
-    return right;
-}
-
-// unoptimized search that is obviously correct O(n), for testing purposes
-unsigned long custom_binary_search(const unsigned long * const input, const unsigned long *array, const unsigned long length, const unsigned long value) {
-    for (unsigned long i = 0; i < length; ++i) {
-        // skips special symbols
-        if (array[i] == BH) ++i; // skips counter
-        else if (array[i] < length && input[array[i]] == value) {
-            return i;
-        }
-    }
-    cout << "not found" << endl;
-    return length; // not found
+    if (input[array[left]] != value) return length;
+    return left;
 }
 
 // unoptimized search that is obviously correct O(n), for testing purposes
@@ -419,7 +392,7 @@ void initializeSA(const unsigned long * const input, unsigned long *SA, const un
             //Let l denote the head of bucket T [i ] in SA (i.e. l is the smallest index in SA such that T [SA[l]] = T [i])
             // We can find l by searching T [i ] in SA (the search key for SA[i ] is T [SA[i ]]) using binary search.
             unsigned long l;
-            unsigned long first = custom_binary_search(input, SA, length, input[index]);
+            unsigned long first = custom_binary_search(input, SA, length, input[index], usingLType);
             if (usingLType) {
                 l = custom_binary_search_last(input, SA, length, input[index]);
             } 
@@ -609,7 +582,7 @@ void sortS_body(const unsigned long * const input, unsigned long *SA, const unsi
 
 
 void sortL_body(const unsigned long * const input, unsigned long *SA, const unsigned long length, unsigned long j){
-    unsigned long l = custom_binary_search(input, SA, length, input[j]); // TODO check if input[i] or input[j]
+    unsigned long l = custom_binary_search(input, SA, length, input[j], false); // TODO check if input[i] or input[j]
     printf("l = %lu, j = %lu\n", l, j);
     if (l == length-1) {
         cout << "skipping as edge case, clearly the only suffix in the bucket" << endl;
@@ -714,7 +687,7 @@ void sortS(const unsigned long * const input, unsigned long *SA, const unsigned 
 
         unsigned long j = SA[i]-1;
         sortS_body(input, SA, length, j);
-        
+
         // does this ever happen? Should this happen?
         while (SA[i]-1 != j && SA[i] < length && SA[i] != 0) // changed current, repeat.
         {

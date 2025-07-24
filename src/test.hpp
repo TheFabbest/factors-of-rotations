@@ -31,7 +31,6 @@ void testForEachWordOfLength(const unsigned long length, const function<void (ch
     for (int i = 0; i < limit; ++i)
     {
         if (i % print_step == 0) cout << word << endl;
-        aux_PrintTypeArray(word,length);
         func(word, length);
         int j = length-1;
         while(true) {
@@ -288,6 +287,8 @@ void testOptimalSuffixArray(const char input_word[], const unsigned long word_le
     for (unsigned long i = 0; i < word_length; ++i) {
         input_as_long[i] = input_word[i];
     }
+
+    aux_PrintTypeArray(input_word, word_length);
     optimalSuffixArray(input_as_long, SA_optimal, word_length);
     cout << "Optimal Suffix Array for " << input_word << " is done." << endl;
     

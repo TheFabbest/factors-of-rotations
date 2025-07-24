@@ -15,7 +15,7 @@ using namespace std;
 
 // ----- auxiliary functions
 
-/* obtains the length of substrings from observation 2 from the paper:
+/* obtains the last index of substrings from observation 2 from the paper:
     For any index i of T, let j ∈[i +1, n −1] be the smallest index such that T[j] < T[j +1] (So T[j] is S-type). 
     Furthermore let k ∈[i + 1, j] be the smallest index such that T[l] = T[j] for any k ≤ l ≤ j. Then T[k] is the first S-type 
     character after index i. Moreover, all characters between T[i] and T[k] are L-type, and characters between T[k] and T[j] are 
@@ -56,18 +56,35 @@ unsigned long getL_SubstringEnd(const unsigned long * const input, const unsigne
         --k;
     }
 
+    ++k;
     return k;
 }
 
+
+// una stringa qualsiasi e piu grande di ogni suo prefisso (si appende carattere speciale)
 int compare_substrings(const unsigned long * const input, unsigned long offsetA, unsigned long offsetB, const unsigned long length, const bool usingLType) {
     unsigned long endA, endB;
     if (usingLType) {
-        endA = getL_SubstringEnd(input, offsetA, length);
-        endB = getL_SubstringEnd(input, offsetB, length);
+        // TODO see, assume the last L-substring only contains one character, which is the last one.
+        if (offsetA == length-1) {
+            endA = offsetA;
+        }
+        else {
+            endA = getL_SubstringEnd(input, offsetA, length);
+        }
+        if (offsetB == length-1) {
+            endB = offsetB;
+        }
+        else {
+            endB = getL_SubstringEnd(input, offsetB, length);
+        }
     } else {
         endA = getS_SubstringEnd(input, offsetA, length);
         endB = getS_SubstringEnd(input, offsetB, length);
     }
+
+    cout << "called on substrings beginning at " << offsetA << " and " << offsetB << endl;
+    cout << endA << " " << endB << " are the ends" << endl;
     cout << "comparing ";
     for (unsigned long i = offsetA; i <= endA; ++i) {
         if (i < length) cout << input[i];
@@ -80,26 +97,103 @@ int compare_substrings(const unsigned long * const input, unsigned long offsetA,
     }
     cout << endl;
 
-
-    while (offsetA <= endA && offsetB <= endB) {
-        if (offsetA == length && offsetB == length) return 0;
-        else if (offsetA == length) return -1;
-        else if (offsetB == length) return 1;
-        else if (input[offsetA] != input[offsetB]) {
-            return input[offsetA] - input[offsetB];
+    while (offsetA < endA && offsetB < endB) {
+        if (input[offsetA] != input[offsetB]) {
+            cout << "here" << endl;
+            if (input[offsetA] < input[offsetB]) {
+                cout << "returning -1" << endl;
+                return -1;
+            }
+            else {
+                cout << "returning 1" << endl;
+                return 1;
+            }
         }
         ++offsetA;
         ++offsetB;
     }
-    if (offsetA == endA && offsetB == endB) {
-        return 0; // equal
-    }
-    else if (offsetA == endA) {
-        return -1; // A is a prefix of B
-    }
+    cout << "out of the loop with " << offsetA << " " << offsetB << endl;
+    if (offsetA == length && offsetB == length) return 0;
+    else if (offsetA == length) return -1;
+    else if (offsetB == length) return 1;
     else {
-        return 1; // B is a prefix of A
+        if (input[offsetA] < input[offsetB]) {
+            return -1;
+        }
+        else if (input[offsetA] > input[offsetB]){
+            return 1;
+        }
+        else {
+            return 0;
+        }
     }
+}
+
+// ordinamento omega, alla fine della stringa si torna indietro (circolare, infinito)
+int compare_substrings_infinite(const unsigned long * const input, unsigned long offsetA, unsigned long offsetB, const unsigned long length, const bool usingLType) {
+    unsigned long endA, endB;
+    const unsigned long oldOffsetA = offsetA;
+    const unsigned long oldOffsetB = offsetB;
+    if (usingLType) {
+        // TODO see, assume the last L-substring only contains one character, which is the last one.
+        if (offsetA == length-1) {
+            endA = offsetA;
+        }
+        else {
+            endA = getL_SubstringEnd(input, offsetA, length);
+        }
+        if (offsetB == length-1) {
+            endB = offsetB;
+        }
+        else {
+            endB = getL_SubstringEnd(input, offsetB, length);
+        }
+    } else {
+        endA = getS_SubstringEnd(input, offsetA, length);
+        endB = getS_SubstringEnd(input, offsetB, length);
+    }
+
+    // cout << "called on substrings beginning at " << offsetA << " and " << offsetB << endl;
+    // cout << endA << " " << endB << " are the ends" << endl;
+    // cout << "comparing ";
+    // for (unsigned long i = offsetA; i <= endA; ++i) {
+    //     if (i < length) cout << input[i];
+    //     else cout << "e";
+    // }
+    // cout << " with ";
+    // for (unsigned long i = offsetB; i <= endB; ++i) {
+    //     if (i < length) cout << input[i];
+    //     else cout << "e";
+    // }
+    // cout << endl;
+
+
+    for (unsigned long i = 0; i <= (1+endA-offsetA) * (1+endB-offsetB); ++i) {
+        cout << "comparing " << offsetA << " with " << offsetB << endl;
+        if (offsetA == length && offsetB == length) return 0;
+        else if (offsetA == length) return -1;
+        else if (offsetB == length) return 1;
+        else if (input[offsetA] != input[offsetB]) {
+            cout << "here" << endl;
+            if (input[offsetA] < input[offsetB]) {
+                cout << "returning -1" << endl;
+                return -1;
+            }
+            else {
+                cout << "returning 1" << endl;
+                return 1;
+            }
+        }
+        ++offsetA;
+        ++offsetB;
+        if (offsetA > endA) {
+            offsetA = oldOffsetA;
+        }
+        if (offsetB > endB) {
+            offsetB = oldOffsetB;
+        }
+    }
+    return 0;
 }
 
 void Heapify(unsigned long *SA, unsigned long *array, unsigned long length, unsigned long index) {
@@ -189,7 +283,9 @@ unsigned long custom_binary_search_last(const unsigned long * const input, const
         // skips special symbols
         cout << "comparing " << array[i] << " with " << value << endl;
         if (array[i] < length) cout << input[array[i]] << endl;
-        if (array[i] < length && input[array[i]] > value) {
+
+        // i != length-1 && array[i] != BH is to skip counters
+        if (array[i] < length && (i == length-1 || array[i+1] != BH) && input[array[i]] > value) {
             --i;
             while(array[i] >= length) --i;
             return i;
@@ -246,6 +342,10 @@ void placeIndicesOf_Type(const unsigned long * const input, const unsigned long 
 // updated to work on L-type suffixes as well
 void mergeSort_Substrings(const unsigned long * const input, const unsigned long length, unsigned long *SA, const unsigned long nS, const bool usingLType) {
     // merge sort SA[nS, length-1] using SA[0, nS-1] as the auxiliary array, thus O(1) space
+    stable_sort(SA+length-nS, SA+length, [input, length, nS, usingLType](const unsigned long &a, const unsigned long &b) {
+                           return compare_substrings(input, a, b, length, usingLType) < 0;
+                       });
+    return;
     unsigned long *auxiliary = SA;
     unsigned long *array = SA + length - nS;
 
@@ -257,7 +357,7 @@ void mergeSort_Substrings(const unsigned long * const input, const unsigned long
             cout << "mid: " << mid << " end: " << end << endl;
             std::merge(array + i, array + mid, array + mid, array + end, auxiliary, 
                        [input, length, usingLType](const unsigned long &a, const unsigned long &b) {
-                           return compare_substrings(input, a, b, length, usingLType) < 0;
+                           return compare_substrings(input, a, b, length, usingLType);
                        });
             std::copy(auxiliary, auxiliary + (end - i), array + i);
         }
@@ -268,7 +368,7 @@ void mergeSort_Substrings(const unsigned long * const input, const unsigned long
     cout << "mid: " << mid << " end: " << end << endl;
     merge(array, array + mid, array + mid, array + end, auxiliary, 
                     [input, length, usingLType](const unsigned long &a, const unsigned long &b) {
-                        return compare_substrings(input, a, b, length, usingLType) < 0;
+                        return compare_substrings(input, a, b, length, usingLType);
                     });
     copy(auxiliary, auxiliary + end, array);
 }
@@ -283,19 +383,20 @@ void mergeSort_Substrings(const unsigned long * const input, const unsigned long
 // updated to work on L-type suffixes as well
 void constructReducedProblem(const unsigned long * const input, const unsigned long length, unsigned long *SA, const unsigned long nS, const bool usingLType) {
     unsigned long currentChar = 0;
-    if (usingLType) {
-        currentChar = -6UL;
-    }
+    // if (usingLType) {
+    //     currentChar = -6UL;
+    // }
     SA[0] = currentChar;
 
     for (unsigned long i = length - nS + 1; i < length; ++i) {
         if (compare_substrings(input, SA[i-1], SA[i], length, usingLType) != 0) {
-            if (!usingLType) {
-                ++currentChar;
-            }
-            else { // TODO see, made sense to me
-                --currentChar;
-            }
+            // if (!usingLType) {
+            //     ++currentChar;
+            // }
+            // else { // TODO see, made sense to me
+            //     --currentChar;
+            // }
+            ++currentChar;
         }
         SA[i - length + nS] = currentChar;
     }
@@ -379,11 +480,6 @@ void preprocess(const unsigned long * const input, unsigned long *SA, const unsi
         nextIsL = currentIsL;
     }
 
-    for (unsigned long i = 0; i < length; ++i) {
-        printf("SA[%lu] = %lu\n", i, SA[i]);
-        printf("input[%lu] = %lu\n", i, input[SA[i]]);
-    }
-
     // TODO
     //Then, we sort SA[0 ... n − 1] (the sorting key of SA[i] is T [SA[i]] i.e., the ﬁrst character of suf(SA[i]))
     // using the mergesort, with the merging step implemented by the stable, in-place, linear time merging algorithm
@@ -428,17 +524,16 @@ void initializeSA(const unsigned long * const input, unsigned long *SA, const un
     cout << endl;
     // we scan T from right to left
     bool nextIsL = false;
-    bool is_in_the_word[] = {0,0,0,0,0,0,0,0,0,0,0,0};
-    bool has_l_type[] = {0,0,0,0,0,0,0,0,0,0,0,0};
+    unsigned long met = 0;
+    unsigned long these_have_l_type[] = {-1UL,-1UL,-1UL,-1UL,-1UL,-1UL,-1UL,-1UL,-1UL,-1UL,-1UL,-1UL,-1UL,-1UL,-1UL,-1UL,-1UL,-1UL};
     for (unsigned long i = 0; i < length; ++i) {
         unsigned long index = length - i - 1;
-        is_in_the_word[input[index]-65] = true; // workaround TODO
         cout << "index: " << index << endl;
         const bool currentIsL = (index == length-1) || (input[index] > input[index+1] || (nextIsL && input[index] == input[index+1]));
         // for each scanning character T[i] which is L_TYPE, if bucket T[i] has not been initialized yet, we initialize it
         
         if (currentIsL) {
-            has_l_type[input[index]-65] = true; // workaround TODO
+            these_have_l_type[met++] = input[index]; // workaround TODO
             //Let l denote the head of bucket T [i ] in SA (i.e. l is the smallest index in SA such that T [SA[l]] = T [i])
             // We can find l by searching T [i ] in SA (the search key for SA[i ] is T [SA[i ]]) using binary search.
             unsigned long l;
@@ -499,12 +594,25 @@ void initializeSA(const unsigned long * const input, unsigned long *SA, const un
 
     // edge case where no L-type for bucket
     // uses aux memory for temp fix
-    for (unsigned long i = 0; usingLType && i < sizeof(has_l_type)/sizeof(has_l_type[0]); ++i) {
-        if (is_in_the_word[i] && !has_l_type[i]) {
-            const unsigned long l = custom_binary_search_last(input, SA, length, i+65);
-            const unsigned long first = custom_binary_search(input, SA, length, i+65);
+    for (unsigned long i = 0; usingLType && i < length; ++i) {
+        bool processed = false;
+        for (unsigned long j = 0; j < sizeof(these_have_l_type)/sizeof(these_have_l_type[0]); ++j) {
+            if (these_have_l_type[j] == input[i]){
+                processed = true;
+                break;
+            }
+        }
+        if (!processed) {
+            for (unsigned long j = 0; j < sizeof(these_have_l_type)/sizeof(these_have_l_type[0]); ++j) {
+                if (these_have_l_type[j] == -1UL){
+                    these_have_l_type[j] = input[i];
+                    break;
+                }
+            }
+            const unsigned long l = custom_binary_search_last(input, SA, length, input[i]);
+            const unsigned long first = custom_binary_search(input, SA, length, input[i]);
             const unsigned long nL = l - first + 1;
-            cout << "initializing bucket " << i+65 << " with nL = " << nL << endl;
+            cout << "initializing bucket " << input[i] << " with nL = " << nL << endl;
             if (nL == 2) {
                 SA[l-1] = BT;
             }
@@ -664,7 +772,7 @@ void sortL_body(const unsigned long * const input, unsigned long *SA, const unsi
         cout << "Skipping suffix with j=" << j << " because it is not L-type." << endl;
         return;
     }
-    else if (input[j] == input[j+1]) {
+    else if (j != length-1 && input[j] == input[j+1]) {
         if (! (SA[l+1] == BH || SA[l+1] == R2 || SA[l+1] == R1) ) {
             if (SA[l+1] != BT && SA[l+1] != R1 && SA[l+1] != BH && SA[l+1] != R2) 
             {
@@ -765,13 +873,19 @@ void sortS(const unsigned long * const input, unsigned long *SA, const unsigned 
         cout << "i= " << i<<endl;
         if (SA[i] >= length) {
             if (SA[i] == BH) ++iter; //skips counter
-            else if (SA[i] != R2) iter-=2;
+            //else if (SA[i] != R2) iter-=2;
             cout << "skipping index " << i << " because SA[i] is a special symbol." << endl;
             continue;
         }
 
-        const unsigned long j = SA[i]-1;
+        unsigned long j = SA[i]-1;
         sortS_body(input, SA, length, j);
+        while (SA[i]-1 != j && SA[i] < length && SA[i] != 0) // changed current, repeat.
+        {
+            cout << "REPEATING" << endl;
+            j = SA[i]-1;
+            sortS_body(input, SA, length, j);
+        }
 
         for (unsigned long m = 0; m < length; ++m){
             cout << SA[m] << " ";
@@ -791,9 +905,9 @@ void sortL(const unsigned long * const input, unsigned long *SA, const unsigned 
         cout << "input[i] = " << input[i] << endl;
         if (SA[i] >= length) {
             if (SA[i] == BH) ++i; //skips counter
-            if (SA[i] != R2) {
-                i-=2;
-            }
+            // else if (SA[i] != R2) {
+            //     i-=2;
+            // }
             cout << "skipping index " << i << " because SA[i] is a special symbol." << endl;
             continue;
         }
@@ -801,8 +915,15 @@ void sortL(const unsigned long * const input, unsigned long *SA, const unsigned 
         // TODO all this method is wrong because the whole algorithm is meant to use the character at the end,
         // first thing, j should not be SA[i]-1 but SA[i].
         // second thing, the first j is always length-1 (because SA[0] is the character at the end, so length).
-        const unsigned long j = SA[i]-1; // TODO see SA[i] = 0 means the sentinel, so we take the last index
+        unsigned long j = SA[i]-1; // TODO see SA[i] = 0 means the sentinel, so we take the last index
         sortL_body(input, SA, length, j);
+
+        while (SA[i]-1 != j && SA[i] < length && SA[i] != 0) // changed current, repeat.
+        {
+            cout << "REPEATING" << endl;
+            j = SA[i]-1;
+            sortL_body(input, SA, length, j);
+        }
     }
 }
 
@@ -811,18 +932,12 @@ void sortL(const unsigned long * const input, unsigned long *SA, const unsigned 
 void inducedSorting(const unsigned long * const input, unsigned long *SA, const unsigned long length, const bool usingLType) {
     printf("Sorting suffixes of the other type, length = %lu\n", length);
     printf("BT = %lu, BH = %lu, E = %lu, R1 = %lu, R2 = %lu\n", BT, BH, E, R1, R2);
-    for (unsigned long i = 0; i < length; ++i) {
-        printf("input[%lu] = %lu, SA[%lu] = %lu\n", i, input[i], i, SA[i]);
-    }
     if (usingLType) sortS(input, SA, length);
     else sortL(input, SA, length);
 }
 
 void optimalSuffixArray(const unsigned long * const input, unsigned long *SA, const unsigned long length) {
     printf("Optimal Suffix Array for input of length: %lu\n", length);
-    for (unsigned long i = 0; i < length; ++i) {
-        printf("input[%lu] = %lu\n", i, input[i]);
-    }
     if (length < 2) {
         printf("base case.\n");
         if (length == 1) {

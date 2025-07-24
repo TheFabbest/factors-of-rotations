@@ -46,34 +46,45 @@ void testForEachWordOfLength(const unsigned long length, const function<void (ch
     }
 }
 
-void testOneBig(){
-    const unsigned long SIZE = 1000;
+void testOneRandom(const unsigned long SIZE){
     const unsigned long MIN_ALPHABET = 'A';
     const unsigned long MAX_ALPHABET = 'Z';
     const unsigned long ALPHABET_SIZE = MAX_ALPHABET - MIN_ALPHABET + 1;
     
     char *word = new char [SIZE+1];
+    unsigned long *input_as_long = new unsigned long [SIZE];
 
     srand(time(0));
     for (unsigned long i = 0; i < SIZE; ++i){
         word[i] = MIN_ALPHABET + rand() % ALPHABET_SIZE;
+        input_as_long[i] = word[i];
     }
     word[SIZE] = '\0';
 
-    unsigned long *SA = SAIS(word, SIZE, ALPHABET_SIZE)+1;
+    unsigned long* SA_optimal = new unsigned long [SIZE];
+    optimalSuffixArray(input_as_long, SA_optimal, SIZE);
     unsigned long *SA_naive = buildSuffixArray(word, SIZE);
 
     // look for differences
     for (unsigned long i = 0; i < SIZE; ++i) {
-        if (SA[i] != SA_naive[i]) {
-            cout << "ERROR" << endl;
+        if (SA_optimal[i] != SA_naive[i]) {
+            cout << "ERROR at " << i << " - SA_optimal was '" << SA_optimal[i] << "' while SA_native was '" << SA_naive[i] << "'" << endl;
+
+            cout << "SA_optimal: ";
+            for (unsigned long j = 0; j < SIZE; ++j){
+                cout << SA_optimal[j] << " ";
+            }
+            cout << endl << "SA_naive: ";
+            for (unsigned long j = 0; j < SIZE; ++j){
+                cout << SA_naive[j] << " ";
+            }
             int n;
             cin >> n;
         }
     }
     
 
-    delete[] (SA-1);
+    delete[] SA_optimal;
     delete[] SA_naive;
     delete[] word;
 }
@@ -342,6 +353,20 @@ void testForSize(const unsigned long test_size) {
     testForEachWordOfLength(test_size, testSAIS);
     cout << "testOptimalSuffixArray" << endl;
     testForEachWordOfLength(test_size, testOptimalSuffixArray);
+}
+
+void routineTestForWorkingWithOptimalSuffix() {
+    // for (int i = 1; i <= 5; ++i) {
+    //     testForEachWordOfLength(1, testOptimalSuffixArray);
+    // }
+    
+    for (int i = 0; i < 10000; ++i) {
+        testOneRandom(10);
+    }
+
+    for (int i = 0; i < 1000; ++i) {
+        testOneRandom(100);
+    }
 }
 
 void testAll(){

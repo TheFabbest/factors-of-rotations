@@ -18,8 +18,7 @@ using namespace std;
 int main() {
     //testAll(); // uncomment to run all tests
     //testOneBig(); // not supported yet
-    testForEachWordOfLength(7, testOptimalSuffixArray);
-    
+    routineTestForWorkingWithOptimalSuffix();
     cout << "DONE" << endl;
     // const char word[] = "AABABBBAABABBC";
     // const unsigned long word_length = (sizeof(word) / sizeof(char)) - 1;

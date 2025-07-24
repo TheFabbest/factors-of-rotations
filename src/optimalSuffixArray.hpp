@@ -271,9 +271,7 @@ unsigned long custom_binary_search(const unsigned long * const input, const unsi
 unsigned long custom_binary_search_last(const unsigned long * const input, const unsigned long *array, const unsigned long length, const unsigned long value) {
     for (unsigned long i = 0; i < length; ++i) {
         // skips special symbols
-        if (array[i] < length) cout << input[array[i]] << endl;
-
-        // i != length-1 && array[i] != BH is to skip counters
+        // (i == length-1 || array[i+1] != BH) is to skip counters
         if (array[i] < length && (i == length-1 || array[i+1] != BH) && input[array[i]] > value) {
             --i;
             while(array[i] >= length || array[i+1] == BH) {

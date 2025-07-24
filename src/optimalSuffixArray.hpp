@@ -66,18 +66,8 @@ int compare_substrings(const unsigned long * const input, unsigned long offsetA,
     unsigned long endA, endB;
     if (usingLType) {
         // TODO see, assume the last L-substring only contains one character, which is the last one.
-        if (offsetA == length-1) {
-            endA = offsetA;
-        }
-        else {
-            endA = getL_SubstringEnd(input, offsetA, length);
-        }
-        if (offsetB == length-1) {
-            endB = offsetB;
-        }
-        else {
-            endB = getL_SubstringEnd(input, offsetB, length);
-        }
+        endA = getL_SubstringEnd(input, offsetA, length);
+        endB = getL_SubstringEnd(input, offsetB, length);
     } else {
         endA = getS_SubstringEnd(input, offsetA, length);
         endB = getS_SubstringEnd(input, offsetB, length);
@@ -459,10 +449,6 @@ void RestoreFromRecursion(const unsigned long * const input, const unsigned long
 void preprocess(const unsigned long * const input, unsigned long *SA, const unsigned long length, const unsigned long nS, const bool usingLType) {
     bool nextIsL = false;
     unsigned long last_inserted_index = length-nS;
-    if (usingLType) { // TODO CHECK URGENT! credo corretto
-        move(SA+length-nS, SA+length, SA);
-        last_inserted_index = length;
-    }
     for (unsigned long i = 0; i < length; ++i) {
         const unsigned long index = length - i - 1;
         const bool currentIsL = (index == length-1) || (input[index] > input[index+1] || (nextIsL && input[index] == input[index+1]));
@@ -525,25 +511,24 @@ void initializeSA(const unsigned long * const input, unsigned long *SA, const un
     // we scan T from right to left
     bool nextIsL = false;
     unsigned long met = 0;
-    unsigned long these_have_l_type[] = {-1UL,-1UL,-1UL,-1UL,-1UL,-1UL,-1UL,-1UL,-1UL,-1UL,-1UL,-1UL,-1UL,-1UL,-1UL,-1UL,-1UL,-1UL};
     for (unsigned long i = 0; i < length; ++i) {
         unsigned long index = length - i - 1;
         cout << "index: " << index << endl;
         const bool currentIsL = (index == length-1) || (input[index] > input[index+1] || (nextIsL && input[index] == input[index+1]));
         // for each scanning character T[i] which is L_TYPE, if bucket T[i] has not been initialized yet, we initialize it
         
-        if (currentIsL) {
-            these_have_l_type[met++] = input[index]; // workaround TODO
+        if ( (currentIsL && !usingLType) || (!currentIsL && usingLType) ) {
             //Let l denote the head of bucket T [i ] in SA (i.e. l is the smallest index in SA such that T [SA[l]] = T [i])
             // We can find l by searching T [i ] in SA (the search key for SA[i ] is T [SA[i ]]) using binary search.
             unsigned long l;
+            unsigned long first = custom_binary_search(input, SA, length, input[index]);
             if (usingLType) {
                 l = custom_binary_search_last(input, SA, length, input[index]);
             } 
             else {
-                l = custom_binary_search(input, SA, length, input[index]);
+                l = first;
             }
-            cout << "the smallest index l in SA such that T[SA[l]] = T[index] is " << l << endl;
+            cout << "the smallest/largest (usingS/usingL) index l in SA such that T[SA[l]] = T[index] is " << l << endl;
             if (usingLType && l == 0 || (!usingLType && l == length-1))
             {
                 cout << "skipping because obviously this is the only suffix in this bucket and this is seen as an edge case." << endl;
@@ -562,14 +547,27 @@ void initializeSA(const unsigned long * const input, unsigned long *SA, const un
             unsigned long rL = l;
             
             cout << "looking for rL, index=" << index << endl;
-            while (rL < length-1 && SA[rL] != index) {
+            while (rL < length && SA[rL] != index) {
                 cout << "SA[" << rL << "] = " << SA[rL] << endl;
                 if (usingLType) --rL;
                 else ++rL;
             }
+            cout << "RL: " << rL;
 
             // Note that nL = rL - l + 1. Hence, it suffices to compute l and rL.
-            const unsigned long nL = ((usingLType) ? l - rL : rL-l+1); // TODO check
+            const unsigned long nL = ((usingLType) ? rL - first + 1 : rL-l+1); // TODO check
+
+            if (usingLType) { // TODO CHECK URGENT! credo corretto
+                cout << "MOVING" << endl;
+                for (unsigned long i = 0; i < length; i++) cout << SA[i] << " ";
+                cout << endl;
+                // s-types (left) and l-types (right) must be swapped
+                rotate(SA+first, SA+first+nL, SA+l+1);
+
+                for (unsigned long i = 0; i < length; i++) cout << SA[i] << " ";
+                cout << endl;
+            }
+
             cout << "initializing bucket T[" << index << "] with nL = " << nL << endl;
             if (nL == 2) {
                 SA[position] = BT;
@@ -590,42 +588,6 @@ void initializeSA(const unsigned long * const input, unsigned long *SA, const un
             }
         }
         nextIsL = currentIsL;
-    }
-
-    // edge case where no L-type for bucket
-    // uses aux memory for temp fix
-    for (unsigned long i = 0; usingLType && i < length; ++i) {
-        bool processed = false;
-        for (unsigned long j = 0; j < sizeof(these_have_l_type)/sizeof(these_have_l_type[0]); ++j) {
-            if (these_have_l_type[j] == input[i]){
-                processed = true;
-                break;
-            }
-        }
-        if (!processed) {
-            for (unsigned long j = 0; j < sizeof(these_have_l_type)/sizeof(these_have_l_type[0]); ++j) {
-                if (these_have_l_type[j] == -1UL){
-                    these_have_l_type[j] = input[i];
-                    break;
-                }
-            }
-            const unsigned long l = custom_binary_search_last(input, SA, length, input[i]);
-            const unsigned long first = custom_binary_search(input, SA, length, input[i]);
-            const unsigned long nL = l - first + 1;
-            cout << "initializing bucket " << input[i] << " with nL = " << nL << endl;
-            if (nL == 2) {
-                SA[l-1] = BT;
-            }
-            else if (nL == 3) {
-                SA[l-1] = BH;
-                SA[l-2] = BT;
-            }
-            else if (nL > 3) {
-                SA[l-1] = BH;
-                SA[l-2] = E;
-                SA[l - nL + 1] = BT;
-            }
-        }
     }
 }
 

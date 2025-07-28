@@ -82,7 +82,7 @@ void testOneRandom(const unsigned long SIZE){
         }
     }
     
-
+    cout << "random test is correct." << endl;
     delete[] SA_optimal;
     delete[] SA_naive;
     delete[] word;
@@ -349,7 +349,7 @@ void testForSize(const unsigned long test_size) {
 
 void routineTestForWorkingWithOptimalSuffix() {
     for (int i = 1; i <= 6; ++i) {
-        testForEachWordOfLength(1, testOptimalSuffixArray);
+        testForEachWordOfLength(i, testOptimalSuffixArray);
     }
     
     for (int i = 0; i < 10000; ++i) {

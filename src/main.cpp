@@ -16,10 +16,11 @@
 using namespace std;
 
 int main() {
-    //testAll(); // uncomment to run all tests
-    //testOneBig(); // not supported yet
+    // some strings give wrong results on both SAIS and "naiveSuffix" but not on optimalSuffix (suffix at 97 is smaller than at 22):
+    //testOptimalSuffixArray("BPILRZDACCJUKCMIRSPDPZUFOJNJMTIOLSZCREEUINQVREDJWUOOVKVJWKUIGEYRWZVQEBMMRCJIGOTEIIUFSPQOAKZGQXZPXUFBX", 101);
     routineTestForWorkingWithOptimalSuffix();
     cout << "DONE" << endl;
+    
     // const char word[] = "AABABBBAABABBC";
     // const unsigned long word_length = (sizeof(word) / sizeof(char)) - 1;
     // PrintAllFactors(word, word_length);

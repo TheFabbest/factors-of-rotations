@@ -68,6 +68,11 @@ void testOneRandom(const unsigned long SIZE){
     // look for differences
     for (unsigned long i = 0; i < SIZE; ++i) {
         if (SA_optimal[i] != SA_naive[i]) {
+            cout << "ERROR for string ";
+            for (unsigned long i = 0; i < SIZE; ++i) {
+                cout << word[i];
+            }
+            cout << endl;
             cout << "ERROR at " << i << " - SA_optimal was '" << SA_optimal[i] << "' while SA_native was '" << SA_naive[i] << "'" << endl;
 
             cout << "SA_optimal: ";
@@ -352,12 +357,12 @@ void routineTestForWorkingWithOptimalSuffix() {
         testForEachWordOfLength(i, testOptimalSuffixArray);
     }
     
-    for (int i = 0; i < 10000; ++i) {
+    for (int i = 0; i < 100000; ++i) {
         testOneRandom(10);
     }
-
-    for (int i = 0; i < 800; ++i) {
-        testOneRandom(100);
+    
+    for (int i = 0; i < 100000; ++i) {
+        testOneRandom(101);
     }
 }
 

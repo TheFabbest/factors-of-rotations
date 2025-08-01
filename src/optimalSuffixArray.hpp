@@ -77,7 +77,7 @@ int compare_substrings(const unsigned long *const input, unsigned long offsetA, 
     unsigned long endA, endB;
     if (usingLType)
     {
-        // TODO see, assume the last L-substring only contains one character, which is the last one.
+        // TODO see, assumes the last L-substring only contains one character, which is the last one.
         endA = getL_SubstringEnd(input, offsetA, length);
         endB = getL_SubstringEnd(input, offsetB, length);
     }
@@ -494,7 +494,7 @@ void initializeSA(const unsigned long *const input, unsigned long *SA, const uns
                 SA[further_position] = E;
                 if (usingLType)
                 {
-                    SA[l - nL + 1] = BT; // TODO check
+                    SA[l - nL + 1] = BT;
                 }
                 else
                 {
@@ -786,10 +786,7 @@ void sortL(const unsigned long *const input, unsigned long *SA, const unsigned l
             continue;
         }
 
-        // TODO all this method is wrong because the whole algorithm is meant to use the character at the end,
-        // first thing, j should not be SA[i]-1 but SA[i].
-        // second thing, the first j is always length-1 (because SA[0] is the character at the end, so length).
-        unsigned long j = SA[i] - 1; // TODO see SA[i] = 0 means the sentinel, so we take the last index
+        unsigned long j = SA[i] - 1;
         sortL_body(input, SA, length, j);
 
         // does this ever happen? Should this happen?
@@ -804,7 +801,7 @@ void sortL(const unsigned long *const input, unsigned long *SA, const unsigned l
 }
 
 // section 5.5 - step 2
-// TODO for usingLType=true, go from right to left and keep the "rightmost free" instead of leftmost free
+// for usingLType=true, go from right to left and keep the "rightmost free" instead of leftmost free
 void inducedSorting(const unsigned long *const input, unsigned long *SA, const unsigned long length, const bool usingLType)
 {
     if (usingLType)

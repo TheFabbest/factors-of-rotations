@@ -18,6 +18,7 @@ using namespace std;
 int main() {
     // some strings give wrong results on both SAIS and "naiveSuffix" but not on optimalSuffix (suffix at 97 is smaller than at 22):
     //testOptimalSuffixArray("BPILRZDACCJUKCMIRSPDPZUFOJNJMTIOLSZCREEUINQVREDJWUOOVKVJWKUIGEYRWZVQEBMMRCJIGOTEIIUFSPQOAKZGQXZPXUFBX", 101);
+    // CHHRKOOFWWSZFOEOHDXAPGXCOTEVWQEAXNUJEIOAHIZMXDDGIAGZIDBXWIUVYZXXORJSCZTJIUVHAYNKBTKLYNKXVFUVGRVULENND is wrong
     routineTestForWorkingWithOptimalSuffix();
     cout << "DONE" << endl;
     

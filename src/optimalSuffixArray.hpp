@@ -24,6 +24,9 @@ void pause()
     Furthermore let k ∈[i + 1, j] be the smallest index such that T[l] = T[j] for any k ≤ l ≤ j. Then T[k] is the first S-type
     character after index i. Moreover, all characters between T[i] and T[k] are L-type, and characters between T[k] and T[j] are
     S-type.
+
+    also see https://pdf.sciencedirectassets.com/272975/1-s2.0-S1570866705X00090/1-s2.0-S1570866704000498/main.pdf?X-Amz-Security-Token=IQoJb3JpZ2luX2VjEFsaCXVzLWVhc3QtMSJHMEUCIDFI12lZiPZYMGVdFITgUGAk%2FoM1k%2BK%2FhALTOYvWoVHHAiEAw4aVSgBmBaArc3rLcPT85HJHJ2EfeZYSG4pO61qCF5wqsgUIExAFGgwwNTkwMDM1NDY4NjUiDDLqWI0gl1%2FE%2F7kfPiqPBeS7hxgBccwQZ5oTf6Q4tRXU9BT1NbD48pjotlkSYqFKl%2BQbxLxJrqMu%2FxRnsjjVMiHzx23lMxSeLghihy6N8ZA21lnzNKScW6W67rlQ%2FBUlwAqOa5y6ZdBg78FSl0L0nAL8RjoOQdAAPisTbrqtHEc1Arv4m9cqq09SnzXxY9udm2Hpx1nMn1xjD4PV83hYcEQNQ92Xq0QxtpZG0VJZLPR1BaWy%2BxxYTodkPp1ltIcgtdd2TIESyvbS6xshuBbolXPZ8eHDsWNVGhUps9JZDb0TZgZ8osx0WQpwT3m1tAmNs7XNLP3dTrlfImZ4B9Jvw1ZB%2BKpFxGz3nZA%2BUMIA9ewefx%2B0ZKhW62lQsMGkhcbGU27XFEMiggn%2B%2BtnhsrOTxBFjAxsAy7YO3qUUEYBmprZ3r0%2BcZqa2mTPwmu4oQ0nvv01fxnTg2Y%2FUbclrH%2BgWq%2F8RCkF0gXcSqFzJcmiGkwjmKnqI50lupCFRSH011Nc8NVfpUdkkEwJQTGSXxMGmNH9GgyS7xoCWHral%2F2DV88WBpeR4C75WbzNWcHivFeWMa4h4MlzueW2WU6tH69b6nVriqp7888KA7o7MUNmZYleLGI6CSc6X6ZqhevLRQhptv2uOF8ugrgnh%2B4%2Fsks1KBMldd6QfZ20kftadLP7f7DGXvyWhlLy%2B2eFr0KAiZhtzuzAnKJnsvaTV4nEOasQAsBFbI5WbUS988JKISfUsALFMXBRkNLkDx84eZTJ40YG3ujhRDhAnxAIAo5xqLHD2hehXg76kPDL5JKlsqh5fpm4aRnmYOjJhm8YxhljKQAg6LmooFGsLy79%2BRfKWtAX16RXRciZidiq3SV91XnDnBZbZRoktMAtxrvqpR90NMYgwxbfdxwY6sQFhxn9BHW7SVH8UHLdu5JIYDr8sybXOkbLIi%2FNCXBwU2wjGzSHIP%2FvD1YVBUxqQEwY5o9yUn09NrH7ZMYyE1nLGUMykU4iijVyRbtf3JLw8OUgZa%2BeiHImuLhYz%2B5kDQFgCEDqBWwYlvsD%2BxMPRK%2FYwdT6WPhdCmPR5fINW5DFl6JaK4fFcjwA1kX0EmY%2BN9Yrz6N626ah0Zbulvgs3HOVS8FsWGrNov%2Be495WokEBC%2F8o%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20251021T105823Z&X-Amz-SignedHeaders=host&X-Amz-Expires=300&X-Amz-Credential=ASIAQ3PHCVTYU4T63QXM%2F20251021%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Signature=cba717c61b94665cd29e1680c7b1121bee37d82047c40895d7a380285ab25ac2&hash=09d7a108d60bcc7a19b6112c14d437db6a4ba6b6727c581ae19cebc533afdc57&host=68042c943591013ac2b2430a89b270f6af2c76d8dfd086a07176afe7c76c2c61&pii=S1570866704000498&tid=spdf-270e1a16-25d9-4043-a681-099a0742f844&sid=1faa6f077419f642736b8b381b983c1115cbgxrqb&type=client&tsoh=d3d3LnNjaWVuY2VkaXJlY3QuY29t&rh=d3d3LnNjaWVuY2VkaXJlY3QuY29t&ua=13145b585552550356&rr=99203d526d3d4c5b&cc=it&kca=eyJrZXkiOiJMMEhJQ2x0N2NuTStudHViazNaajQ4aEpFT1hRVWhISkFRd1lCZ3BmYUNzbEVxdFlYQjBlelpqRVlNZTVDZWFuY0NYVjgvWnBQeXF4V29wRnRyYk9kR1VnMWFpM05wazJhWlcrSWo4M1NncW5aejZlWlcwTGNEL0ZTL0Mya1c1NE9mc2NQNFJYSVFzWlBCalIxSVRjWVFVT0cySXlPY2V6OTJSaUlaaUE5aFRSN0tIL2h3PT0iLCJpdiI6IjY0MGYzNDRmOWY4NTlmMWI5YTI0YmQ0NGE2ZGQzMzc4In0=_1761044316811
+
 */
 unsigned long getS_SubstringEnd(const unsigned long *const input, const unsigned long start, const unsigned long length)
 {
@@ -72,7 +75,7 @@ unsigned long getL_SubstringEnd(const unsigned long *const input, const unsigned
 }
 
 // una stringa qualsiasi e piu grande di ogni suo prefisso (si appende carattere speciale)
-int compare_substrings(const unsigned long *const input, unsigned long offsetA, unsigned long offsetB, const unsigned long length, const bool usingLType)
+int compare_substrings_old(const unsigned long *const input, unsigned long offsetA, unsigned long offsetB, const unsigned long length, const bool usingLType)
 {
     unsigned long endA, endB;
     if (usingLType)
@@ -107,9 +110,9 @@ int compare_substrings(const unsigned long *const input, unsigned long offsetA, 
     if (offsetA == length && offsetB == length)
         return 0;
     else if (offsetA == length)
-        return -1;
-    else if (offsetB == length)
         return 1;
+    else if (offsetB == length)
+        return -1;
     else
     {
         if (input[offsetA] < input[offsetB])
@@ -123,6 +126,54 @@ int compare_substrings(const unsigned long *const input, unsigned long offsetA, 
         else
         {
             return 0;
+        }
+    }
+}
+
+int compare_substrings(const unsigned long *const input, unsigned long offsetA, unsigned long offsetB, const unsigned long length, const bool usingLType)
+{
+    unsigned long endA, endB;
+    if (usingLType)
+    {
+        endA = getL_SubstringEnd(input, offsetA, length);
+        endB = getL_SubstringEnd(input, offsetB, length);
+    }
+    else
+    {
+        endA = getS_SubstringEnd(input, offsetA, length);
+        endB = getS_SubstringEnd(input, offsetB, length);
+    }
+
+    while (offsetA < endA && offsetB < endB)
+    {
+        if (input[offsetA] != input[offsetB])
+        {
+            if (input[offsetA] < input[offsetB])
+            {
+                return -1;
+            }
+            else
+            {
+                return 1;
+            }
+        }
+        ++offsetA;
+        ++offsetB;
+    }
+    if (offsetA == endA && offsetB == endB)
+        return 0;
+    else if (offsetA == length) {
+        return -1;
+    }
+    else if (offsetB == length) {
+        return 1;
+    }
+    else {
+        if (offsetA == endA) {
+            return 1;
+        }
+        else {
+            return -1;
         }
     }
 }
@@ -173,16 +224,20 @@ unsigned long custom_binary_search(const unsigned long *const input, const unsig
     auto is_valid = [array, length, usingLType](unsigned long index)
     { return array[index] < length && (usingLType || index == 0 || array[index - 1] != BH) && (!usingLType || index == length - 1 || array[index + 1] != BH); };
 
+    for (unsigned long debug_i = 0; debug_i < length; ++debug_i)
+        cout << "array[" << debug_i << "]=" << array[debug_i] << endl;
+
     while (right > left)
     {
+        cout << "left: " << left << " right: " << right << endl;
         const unsigned long mid = left + ((right - left) / 2);
         unsigned long checking = mid;
         while (checking > left && !is_valid(checking))
         {
             --checking;
         }
-        const unsigned long current = input[array[checking]];
-        if (is_valid(checking) && current >= value)
+
+        if (is_valid(checking) && input[array[checking]] >= value)
         {
             right = checking;
         }
@@ -203,7 +258,7 @@ unsigned long custom_binary_search_last(const unsigned long *const input, const 
     unsigned long right = length - 1;
 
     auto is_valid = [array, length, usingLType](unsigned long index)
-    { return array[index] < length && (usingLType || index == 0 || array[index - 1] != BH) && (!usingLType || index == length - 1 || array[index + 1] != BH); };
+    { return (array[index] < length) && (usingLType || index == 0 || array[index - 1] != BH) && (!usingLType || index == length - 1 || array[index + 1] != BH); };
 
     while (right > left)
     {
@@ -213,8 +268,7 @@ unsigned long custom_binary_search_last(const unsigned long *const input, const 
         {
             ++checking;
         }
-        const unsigned long current = input[array[checking]];
-        if (is_valid(checking) && current <= value)
+        if (is_valid(checking) && input[array[checking]] <= value)
         {
             left = checking;
         }
@@ -437,6 +491,7 @@ void initializeSA(const unsigned long *const input, unsigned long *SA, const uns
             //  We can find l by searching T [i ] in SA (the search key for SA[i ] is T [SA[i ]]) using binary search.
             unsigned long l;
             unsigned long first = custom_binary_search(input, SA, length, input[index], usingLType);
+
             if (usingLType)
             {
                 l = custom_binary_search_last(input, SA, length, input[index], true);
@@ -452,6 +507,7 @@ void initializeSA(const unsigned long *const input, unsigned long *SA, const uns
             }
             const unsigned long position = usingLType ? l - 1 : l + 1;
             const unsigned long further_position = usingLType ? l - 2 : l + 2;
+
             if (SA[position] >= length)
             {
                 // if the bucket is already initialized, we skip it
@@ -472,7 +528,6 @@ void initializeSA(const unsigned long *const input, unsigned long *SA, const uns
 
             // Note that nL = rL - l + 1. Hence, it suffices to compute l and rL.
             const unsigned long nL = ((usingLType) ? rL - first + 1 : rL - l + 1);
-
             if (usingLType)
             {
                 // s-types (left) and l-types (right) must be swapped

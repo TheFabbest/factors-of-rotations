@@ -318,6 +318,10 @@ void testOptimalSuffixArray(const char input_word[], const unsigned long word_le
                 cout << SA_optimal[j] << " ";
             }
             cout << endl;
+
+            cout << "SUFFIXES:" << endl;
+            cout << string(input_word+SA[i], word_length - SA[i]) << endl;
+            cout << string(input_word+SA_optimal[i], word_length - SA_optimal[i]) << endl;
             cin.get();
         }
     }
@@ -357,7 +361,7 @@ void routineTestForWorkingWithOptimalSuffix() {
         testForEachWordOfLength(i, testOptimalSuffixArray);
     }
     
-    for (int i = 0; i < 1000; ++i) {
+    for (int i = 0; i < 10000; ++i) {
         testOneRandom(10);
     }
     
@@ -367,6 +371,10 @@ void routineTestForWorkingWithOptimalSuffix() {
 
     for (int i = 0; i < 1000; ++i) {
         testOneRandom(10001);
+    }
+
+    for (int i = 0; i < 200; ++i) {
+        testOneRandom(100001+i);
     }
 }
 

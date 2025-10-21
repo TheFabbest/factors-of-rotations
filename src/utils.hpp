@@ -64,12 +64,15 @@ void PrintAllFactorsNaive(const char *input_word, const unsigned long word_lengt
             cout << s << ", ";
         }
     }
+    delete[] rotation;
     cout << endl;
 }
 
 void PrintAllFactors(const char * const input_word, const unsigned long word_length) {
     // find smallest rotation
-    char word[word_length+1];
+    // dynamic
+    char* word = new char[word_length+1];
+
     const unsigned long rot = least_rotation(input_word, word_length);
     rotate_copy(input_word, input_word+rot, input_word+word_length, word);
     word[word_length] = '\0';
@@ -82,11 +85,11 @@ void PrintAllFactors(const char * const input_word, const unsigned long word_len
         unsigned long *rank = rankArrayFromSA(SA, word_length);
 
         // Lyndon Table
-        unsigned long Lyn[word_length];
+        unsigned long* Lyn = new unsigned long[word_length];
         LongestLyndon(word, word_length, rank, Lyn);
 
         // Lyndon Suffix Table
-        unsigned long LynS[word_length];
+        unsigned long* LynS = new unsigned long[word_length];
         LyndonSuffixTable(word, word_length, LynS);
 
         // loop (Lyndon Suffix Table)
@@ -112,6 +115,10 @@ void PrintAllFactors(const char * const input_word, const unsigned long word_len
         cout << endl;
 
         delete[] (SA-1);
+        delete[] word;
+        delete[] rank;
+        delete[] Lyn;
+        delete[] LynS;
     }
     else {
         cout << endl << word << " is periodic and its factors are: ";
@@ -119,6 +126,8 @@ void PrintAllFactors(const char * const input_word, const unsigned long word_len
             cout << f << ", ";
         }
         cout << endl;
+
+        delete[] word;
 
         unsigned long first_factor_length = factors[0].length();
         PrintAllFactors(factors[0].c_str(), first_factor_length);

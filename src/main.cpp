@@ -16,15 +16,10 @@
 using namespace std;
 
 int main() {
-
-    routineTestForWorkingWithOptimalSuffix();
-
-    cout << "DONE" << endl;
-    
-    // const char word[] = "AABABBBAABABBC";
-    // const unsigned long word_length = (sizeof(word) / sizeof(char)) - 1;
-    // PrintAllFactors(word, word_length);
-    // cout << endl;
-    // PrintAllFactorsNaive(word, word_length);
+    const char word[] = "AABABBBAABABBC";
+    const unsigned long word_length = (sizeof(word) / sizeof(char)) - 1;
+    PrintAllFactors(word, word_length);
+    cout << endl;
+    PrintAllFactorsNaive(word, word_length);
     return 0;
 }

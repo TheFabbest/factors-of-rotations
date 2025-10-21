@@ -185,7 +185,7 @@ void BuildHeap(unsigned long *const SA, const unsigned long length, const unsign
 }
 
 // modified binary search that returns the first occurrence of the value
-unsigned long custom_binary_search(const unsigned long *const input, const unsigned long *array, const unsigned long length, const unsigned long value, const bool usingLType)
+unsigned long custom_binary_search(const unsigned long *const input, const unsigned long * const array, const unsigned long length, const unsigned long value, const bool usingLType)
 {
     unsigned long left = 0;
     unsigned long right = length - 1;
@@ -273,7 +273,7 @@ unsigned long countS_Type(const unsigned long *const input, const unsigned long 
 // returns the number of S-type suffixes found (nS)
 // correct for test AABBABAB
 // updated to work on L-type suffixes as well
-void placeIndicesOf_Type(const unsigned long *const input, const unsigned long length, unsigned long *SA, const bool usingLType)
+void placeIndicesOf_Type(const unsigned long *const input, const unsigned long length, unsigned long * const SA, const bool usingLType)
 {
     bool nextIsL = false; // the sentinel at the end is S_TYPE
     unsigned long last_inserted_index = length;
@@ -295,7 +295,7 @@ void placeIndicesOf_Type(const unsigned long *const input, const unsigned long l
 // according to this ordering, a word is always bigger than its prefixes
 // correct for test AABBABAB
 // updated to work on L-type suffixes as well
-void mergeSort_Substrings(const unsigned long *const input, const unsigned long length, unsigned long *SA, const unsigned long nS, const bool usingLType)
+void mergeSort_Substrings(const unsigned long *const input, const unsigned long length, unsigned long *const SA, const unsigned long nS, const bool usingLType)
 {
     // merge sort SA[nS, length-1] using SA[0, nS-1] as the auxiliary array, thus O(1) space
 
@@ -303,8 +303,8 @@ void mergeSort_Substrings(const unsigned long *const input, const unsigned long 
     //                        return compare_substrings(input, a, b, length, usingLType) < 0;
     //                    });
 
-    unsigned long *auxiliary = SA;
-    unsigned long *array = SA + length - nS;
+    unsigned long * const auxiliary = SA;
+    unsigned long * const array = SA + length - nS;
 
     unsigned long step = 1;
     while (step < length)
@@ -332,7 +332,7 @@ void mergeSort_Substrings(const unsigned long *const input, const unsigned long 
 // note: could process the input from the end, starting with the highest representable character.
 // works for test AABBABAB
 // updated to work on L-type suffixes as well
-void constructReducedProblem(const unsigned long *const input, const unsigned long length, unsigned long *SA, const unsigned long nS, const bool usingLType)
+void constructReducedProblem(const unsigned long *const input, const unsigned long length, unsigned long * const SA, const unsigned long nS, const bool usingLType)
 {
     unsigned long currentChar = 0;
     SA[0] = currentChar;
@@ -352,10 +352,10 @@ void constructReducedProblem(const unsigned long *const input, const unsigned lo
 // the reduced problem is stored in SA[length-nS, length-1]
 // when swapping elements, we also swap the corresponding indices in SA[0, nS-1]
 // correct for test AABBABAB
-void heapSortReducedProblem(unsigned long *SA, const unsigned long length, const unsigned long nS)
+void heapSortReducedProblem(unsigned long *const SA, const unsigned long length, const unsigned long nS)
 {
     BuildHeap(SA, length, nS);
-    unsigned long *array = SA + length - nS;
+    unsigned long * const array = SA + length - nS;
     for (unsigned long i = nS - 1; i > 0; --i)
     {
         std::swap(array[0], array[i]);
@@ -365,7 +365,7 @@ void heapSortReducedProblem(unsigned long *SA, const unsigned long length, const
 }
 
 // section 5.4
-void RestoreFromRecursion(const unsigned long *const input, const unsigned long length, unsigned long *SA, const unsigned long nS, const bool usingLType)
+void RestoreFromRecursion(const unsigned long *const input, const unsigned long length, unsigned long *const SA, const unsigned long nS, const bool usingLType)
 {
     // recursion (TODO in O(1) space)
     optimalSuffixArray(SA, SA + length - nS, nS);
@@ -395,7 +395,7 @@ void RestoreFromRecursion(const unsigned long *const input, const unsigned long 
 // at this point, the S-suffixes are already relatively sorted in SA[length-nS, length-1]
 // we are now putting the L-suffixes in SA[0, length-nS-1]
 // then we sort the whole SA using mergesort, sorting key for SA[i] is T[SA[i]]
-void preprocess(const unsigned long *const input, unsigned long *SA, const unsigned long length, const unsigned long nS, const bool usingLType)
+void preprocess(const unsigned long *const input, unsigned long * const SA, const unsigned long length, const unsigned long nS, const bool usingLType)
 {
     bool nextIsL = false;
     unsigned long last_inserted_index = length - nS;
@@ -439,7 +439,7 @@ void preprocess(const unsigned long *const input, unsigned long *SA, const unsig
 // section 5.5 - step 1
 // this initializes the suffix array with special symbols that inform us on the number
 // of L-type suffixes in each bucket.
-void initializeSA(const unsigned long *const input, unsigned long *SA, const unsigned long length, const bool usingLType)
+void initializeSA(const unsigned long *const input, unsigned long * const SA, const unsigned long length, const bool usingLType)
 {
     // we scan T from right to left
     bool nextIsL = false;
@@ -526,7 +526,7 @@ void initializeSA(const unsigned long *const input, unsigned long *SA, const uns
     }
 }
 
-void case4(const unsigned long *const input, unsigned long *SA, unsigned long l, unsigned long j, unsigned long length)
+void case4(const unsigned long *const input, unsigned long *const SA, const unsigned long l, const unsigned long j, const unsigned long length)
 {
     unsigned long rL = l + 1;
     while (rL < length && SA[rL] != R1 && (SA[rL] < length && input[SA[rL]] == input[j]))
@@ -540,7 +540,7 @@ void case4(const unsigned long *const input, unsigned long *SA, unsigned long l,
     }
 }
 
-void case4_S(const unsigned long *const input, unsigned long *SA, unsigned long l, unsigned long j, unsigned long length)
+void case4_S(const unsigned long *const input, unsigned long *const SA, const unsigned long l, const unsigned long j, const unsigned long length)
 {
     unsigned long rL = l + 1;
     while (rL > 0 && SA[rL - 1] != R1 && input[SA[rL - 1]] == input[j])
@@ -554,9 +554,9 @@ void case4_S(const unsigned long *const input, unsigned long *SA, unsigned long 
     }
 }
 
-void sortS_body(const unsigned long *const input, unsigned long *SA, const unsigned long length, unsigned long j)
+void sortS_body(const unsigned long *const input, unsigned long *const SA, const unsigned long length, const unsigned long j)
 {
-    unsigned long l = custom_binary_search_last(input, SA, length, input[j], true); // modified to look for the last occurrence
+    const unsigned long l = custom_binary_search_last(input, SA, length, input[j], true); // modified to look for the last occurrence
 
     if (l == 0)
     {
@@ -655,9 +655,9 @@ void sortS_body(const unsigned long *const input, unsigned long *SA, const unsig
     }
 }
 
-void sortL_body(const unsigned long *const input, unsigned long *SA, const unsigned long length, unsigned long j)
+void sortL_body(const unsigned long *const input, unsigned long *const SA, const unsigned long length, const unsigned long j)
 {
-    unsigned long l = custom_binary_search(input, SA, length, input[j], false);
+    const unsigned long l = custom_binary_search(input, SA, length, input[j], false);
     if (l == length - 1)
     {
         // skipping as edge case, clearly the only suffix in the bucket
@@ -755,7 +755,7 @@ void sortL_body(const unsigned long *const input, unsigned long *SA, const unsig
     }
 }
 
-void sortS(const unsigned long *const input, unsigned long *SA, const unsigned long length)
+void sortS(const unsigned long *const input, unsigned long * const SA, const unsigned long length)
 {
     for (unsigned long iter = 1; iter <= length; ++iter)
     {
@@ -787,7 +787,7 @@ void sortS(const unsigned long *const input, unsigned long *SA, const unsigned l
     }
 }
 
-void sortL(const unsigned long *const input, unsigned long *SA, const unsigned long length)
+void sortL(const unsigned long *const input, unsigned long * const SA, const unsigned long length)
 {
     sortL_body(input, SA, length, length - 1);
 
@@ -822,7 +822,7 @@ void sortL(const unsigned long *const input, unsigned long *SA, const unsigned l
 
 // section 5.5 - step 2
 // for usingLType=true, go from right to left and keep the "rightmost free" instead of leftmost free
-void inducedSorting(const unsigned long *const input, unsigned long *SA, const unsigned long length, const bool usingLType)
+void inducedSorting(const unsigned long *const input, unsigned long * const SA, const unsigned long length, const bool usingLType)
 {
     if (usingLType)
         sortS(input, SA, length);

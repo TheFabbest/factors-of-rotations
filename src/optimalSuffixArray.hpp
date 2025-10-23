@@ -843,14 +843,7 @@ void optimalSuffixArray(const unsigned long *const input, unsigned long *const S
 
     // check if nS <= nL
     unsigned long nS = countS_Type(input, length);
-    if (nS == length)
-    {
-        for (unsigned long i = 0; i < length; ++i)
-        {
-            SA[i] = i;
-        }
-    }
-    else if (nS == 0)
+    if (nS == 0)
     {
         for (unsigned long i = 0; i < length; ++i)
         {

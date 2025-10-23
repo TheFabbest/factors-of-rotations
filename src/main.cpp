@@ -16,6 +16,10 @@
 using namespace std;
 
 int main() {
+
+    routineTestForWorkingWithOptimalSuffix();
+    return 0;
+
     const char word[] = "AABABBBAABABBC";
     const unsigned long word_length = (sizeof(word) / sizeof(char)) - 1;
     PrintAllFactors(word, word_length);

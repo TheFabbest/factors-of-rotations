@@ -7,6 +7,7 @@
 #include "utils.hpp"
 #include "naiveSuffix.hpp"
 #include "optimalSuffixArray.hpp"
+#include <chrono>
 
 void aux_PrintTypeArray(const char *input_word, const unsigned long word_length) {
     bool *typeArray = new bool[word_length+1];
@@ -376,6 +377,32 @@ void routineTestForWorkingWithOptimalSuffix() {
     for (int i = 0; i < 200; ++i) {
         testOneRandom(100001+i);
     }
+}
+
+void executionTimeOptimalSuffixArray(const unsigned long SIZE, const unsigned long TESTS){
+    const unsigned long MIN_ALPHABET = 'A';
+    const unsigned long MAX_ALPHABET = 'Z';
+    const unsigned long ALPHABET_SIZE = MAX_ALPHABET - MIN_ALPHABET + 1;
+
+    unsigned long *input_as_long = new unsigned long [SIZE];
+
+    srand(time(0));
+    for (unsigned long i = 0; i < SIZE; ++i){
+        input_as_long[i] = MIN_ALPHABET + rand() % ALPHABET_SIZE;
+    }
+
+    unsigned long* SA_optimal = new unsigned long [SIZE];
+
+    auto start = chrono::high_resolution_clock::now();
+    for (unsigned long t = 0; t < TESTS; ++t){
+        optimalSuffixArray(input_as_long, SA_optimal, SIZE);
+    }
+    auto end = chrono::high_resolution_clock::now();
+    chrono::duration<double> elapsed = end - start;
+    cout << "Optimal Suffix Array for size " << SIZE << " over " << TESTS << " tests took " << elapsed.count() << " seconds." << endl;
+
+    delete[] SA_optimal;
+    delete[] input_as_long;
 }
 
 void testAll(){

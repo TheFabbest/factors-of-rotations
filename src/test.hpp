@@ -61,7 +61,7 @@ void testOneRandom(const unsigned long SIZE){
         input_as_long[i] = word[i];
     }
     word[SIZE] = '\0';
-
+    cout << "Testing word: " << word << endl;
     unsigned long* SA_optimal = new unsigned long [SIZE];
     optimalSuffixArray(input_as_long, SA_optimal, SIZE);
     unsigned long *SA_naive = buildSuffixArray(word, SIZE);

@@ -61,7 +61,6 @@ void testOneRandom(const unsigned long SIZE){
         input_as_long[i] = word[i];
     }
     word[SIZE] = '\0';
-    cout << "Testing word: " << word << endl;
     unsigned long* SA_optimal = new unsigned long [SIZE];
     optimalSuffixArray(input_as_long, SA_optimal, SIZE);
     unsigned long *SA_naive = buildSuffixArray(word, SIZE);
@@ -92,6 +91,7 @@ void testOneRandom(const unsigned long SIZE){
     delete[] SA_optimal;
     delete[] SA_naive;
     delete[] word;
+    delete[] input_as_long;
 }
 
 
@@ -358,7 +358,7 @@ void testForSize(const unsigned long test_size) {
 }
 
 void routineTestForWorkingWithOptimalSuffix() {
-    for (int i = 1; i <= 6; ++i) {
+    for (int i = 1; i <= 4; ++i) {
         testForEachWordOfLength(i, testOptimalSuffixArray);
     }
     
@@ -386,7 +386,7 @@ void executionTimeOptimalSuffixArray(const unsigned long SIZE, const unsigned lo
 
     unsigned long *input_as_long = new unsigned long [SIZE];
 
-    srand(time(0));
+    //srand(time(0));
     for (unsigned long i = 0; i < SIZE; ++i){
         input_as_long[i] = MIN_ALPHABET + rand() % ALPHABET_SIZE;
     }

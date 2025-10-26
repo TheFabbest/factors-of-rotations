@@ -371,11 +371,6 @@ void heapSortReducedProblem(unsigned long *const SA, const unsigned long length,
 // section 5.4
 void RestoreFromRecursion(const unsigned long *const input, const unsigned long length, unsigned long *const SA, const unsigned long nS, const bool usingLType)
 {
-    for (unsigned long i = 0; i < length; ++i)
-    {
-        cout << SA[i] << " ";
-    }
-    cout << endl;
     // restore
     bool nextIsL = false;
     unsigned long sum = 0;
@@ -836,7 +831,7 @@ void inducedSorting(const unsigned long *const input, unsigned long * const SA, 
         sortL(input, SA, length);
 }
 
-bool optimalSuffixArray_first(const unsigned long *const input, unsigned long *const SA, const unsigned long length)
+bool optimalSuffixArray_first(const unsigned long *const input, unsigned long *const SA, const unsigned long length, unsigned long &nS)
 {
     if (length < 2)
     {
@@ -848,7 +843,7 @@ bool optimalSuffixArray_first(const unsigned long *const input, unsigned long *c
     }
 
     // check if nS <= nL
-    unsigned long nS = countS_Type(input, length);
+    nS = countS_Type(input, length);
     if (nS == 0)
     {
         for (unsigned long i = 0; i < length; ++i)
@@ -882,13 +877,6 @@ bool optimalSuffixArray_first(const unsigned long *const input, unsigned long *c
 void optimalSuffixArray_second(const unsigned long *const input, unsigned long *const SA, const unsigned long length) {
     unsigned long nS = countS_Type(input, length);
 
-    for (unsigned long i = 0; i < length; ++i)
-    {
-        cout << "input[" << i << "] = " << input[i] << endl;
-    }
-
-    cout <<"ok" << endl;
-
     const bool usingLType = (length - nS) < nS; // if there are more L-type suffixes, we swap the roles of S and L
     if (usingLType)
     {
@@ -898,22 +886,14 @@ void optimalSuffixArray_second(const unsigned long *const input, unsigned long *
     // step 5
     RestoreFromRecursion(input, length, SA, nS, usingLType);
 
-    cout << "step 5 done" << endl;
-
     // step 6
     preprocess(input, SA, length, nS, usingLType);
-
-    cout << "step 6 done" << endl;
 
     // step 7
     initializeSA(input, SA, length, usingLType);
 
-    cout << "step 7 done" << endl;
-
     // step 8
     inducedSorting(input, SA, length, usingLType);
-
-    cout << "step 8 done" << endl;
 }
 
 
@@ -930,17 +910,28 @@ AABBB
 0x1e2cf7567d0 0x1e2cf7569d0 5
 0x1e2cf7569d0 0x1e2cf7569dc 2
 0x1e2cf7569dc 0x1e2cf7569e0 1
+
+RKSFFYBCYJ
+LSLSSLSSLL
+0x27d9cc7a670 0x27d9cc7a340 10
+0x27d9cc7a340 0x27d9cc7a354 5
+0x27d9cc7a354 0x27d9cc7a360 2
+
+DVEGDYWRNY
+0x29bfec58910 0x29bfec589d0 10
+0x29bfec589d0 0x29bfec589e8 4
+0x29bfec589e8 0x29bfec589f0 2
+0x29bfec589f0 0x29bfec589f4 1
 */
 
 void optimalSuffixArray(unsigned long *const input, unsigned long *const SA, const unsigned long length)
 {
-    bool needsRecursion = optimalSuffixArray_first(input, SA, length);
+    unsigned long prev_nS;
+    bool needsRecursion = optimalSuffixArray_first(input, SA, length, prev_nS);
     if (!needsRecursion)
     {
         return;
     }
-
-    cout << "called first time on in:" << input - SA << " out: " << SA - SA << " len: " << length << endl;
 
     unsigned long *old_input = input;
     unsigned long *old_output = SA;
@@ -949,29 +940,17 @@ void optimalSuffixArray(unsigned long *const input, unsigned long *const SA, con
     unsigned long old_old_length = old_length;
     unsigned long recursionDepth = 0;
     while (needsRecursion) {
-        cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" << endl;
         unsigned long *new_input = old_output;
-        unsigned long nS = countS_Type(old_input, old_length);
-
-        const bool usingLType = (old_length - nS) < nS; // if there are more L-type suffixes, we swap the roles of S and L
-        if (usingLType)
-        {
-            nS = old_length - nS;
-        }
-    
-        unsigned long new_length = nS;
+        unsigned long new_length = prev_nS;
         unsigned long *new_output = old_output + old_length - new_length;
         
         new_output_index += old_length - new_length;
-        cout << "new_output_index: " << new_output_index << endl;
-        cout << "Depth: " << recursionDepth << " in: " << new_input - SA << " out: " << new_output - SA << " len: " << new_length << endl;
-
         bool prev_had_space = new_input[0] & MSB;
         if (prev_had_space) {
             new_input[0] &= ~MSB;
         }
 
-        needsRecursion = optimalSuffixArray_first(new_input, new_output, new_length);
+        needsRecursion = optimalSuffixArray_first(new_input, new_output, new_length, prev_nS);
         if (!needsRecursion) {
             new_output_index -= old_length - new_length;
         }
@@ -983,8 +962,6 @@ void optimalSuffixArray(unsigned long *const input, unsigned long *const SA, con
 
         // make sure I store information to go back later
         if (new_length*2 != old_length) {
-            cout << "have space" << endl;
-            cout << "storing old length " << old_length << " at new_output[-1]" << endl;
             new_output[0] |= MSB;
             new_output[-1] = old_length;
         }
@@ -993,17 +970,13 @@ void optimalSuffixArray(unsigned long *const input, unsigned long *const SA, con
         old_output = new_output;
         old_old_length = old_length;
         old_length = new_length;
-
-        cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" << endl << endl;
     }
     --recursionDepth;
-    if (SA[length-1] >= MSB) {
-        SA[length-1] &= ~MSB;
+    if (old_output[0] >= MSB) {
+        old_output[0] &= ~MSB;
     }
 
-    cout << "!!!!!!!!!!!!!!!!" << endl;
     while (recursionDepth-- > 0) {
-        cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" << endl;
 
         old_length = old_old_length;
         bool had_space = old_input[0] & MSB;
@@ -1024,22 +997,14 @@ void optimalSuffixArray(unsigned long *const input, unsigned long *const SA, con
             old_input[0] &= ~MSB;
         }
 
-        cout << "Depth: " << recursionDepth << " in: " << old_input - SA << " out: " << old_output - SA << " len: " << old_length << endl;
-
-        cout << "here with old_input[0]=" << old_input[0] << " and had_space=" << had_space << endl;
-        
         optimalSuffixArray_second(old_input, old_output, old_length);
 
         if (current_have_space) {
             old_input[0] |= MSB;
         }
-        cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" << endl << endl;
     }
 
-    cout << "last second part in:" << input - SA << " out: " << SA - SA << " len: " << length << endl;
-
     if (old_output[0] >= MSB) {
-        cout << "removing MSB from old_output[" << 0 << "]=" << old_output[0] << endl;
         old_output[0] -= MSB;
     }
     optimalSuffixArray_second(input, SA, length);

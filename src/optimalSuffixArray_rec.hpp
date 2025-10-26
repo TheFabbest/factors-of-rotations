@@ -371,19 +371,6 @@ void RestoreFromRecursion(const unsigned long *const input, const unsigned long 
     // recursion (TODO in O(1) space)
     optimalSuffixArray(SA, SA + length - nS, nS);
 
-    
-    cout << "input: ";
-    for (unsigned long i = 0; i < length; ++i)
-    {
-        cout << input[i] << " ";
-    }
-    cout << endl << "SA: ";
-    for (unsigned long i = 0; i < length; ++i)
-    {
-        cout << SA[i] << " ";
-    }
-    cout << endl;
-
     // restore
     bool nextIsL = false;
     unsigned long sum = 0;
@@ -845,10 +832,7 @@ void inducedSorting(const unsigned long *const input, unsigned long * const SA, 
 }
 
 void optimalSuffixArray(const unsigned long *const input, unsigned long *const SA, const unsigned long length)
-{
-
-    cout << input << " " << SA << " " << length << endl;
-    
+{    
     if (length < 2)
     {
         if (length == 1)

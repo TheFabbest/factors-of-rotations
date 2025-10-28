@@ -18,7 +18,7 @@ constexpr unsigned long MSB = 1UL << (std::numeric_limits<unsigned long>::digits
 
 // ----- auxiliary functions
 
-void pause()
+inline void pause()
 {
     // cin.get();
 }
@@ -944,35 +944,36 @@ void optimalSuffixArray(unsigned long *const input, unsigned long *const SA, con
         unsigned long new_length = prev_nS;
         unsigned long *new_output = old_output + old_length - new_length;
         
-        new_output_index += old_length - new_length;
+        // cleaning up before recursion
         bool prev_had_space = new_input[0] & MSB;
         if (prev_had_space) {
             new_input[0] &= ~MSB;
         }
 
+        // recursion
         needsRecursion = optimalSuffixArray_first(new_input, new_output, new_length, prev_nS);
-        if (!needsRecursion) {
-            new_output_index -= old_length - new_length;
-        }
-        ++recursionDepth;
         
+        // restoring after recursion
         if (prev_had_space) {
             new_input[0] |= MSB;
         }
 
-        // make sure I store information to go back later
-        if (new_length*2 != old_length) {
-            new_output[0] |= MSB;
-            new_output[-1] = old_length;
+        // get ready for next recursive call
+        if (needsRecursion) {
+            new_output_index += old_length - new_length;
+            ++recursionDepth;
+
+            // make sure I store information to go back later
+            if (new_length*2 != old_length) {
+                new_output[0] |= MSB;
+                new_output[-1] = old_length;
+            }
+
+            old_output = new_output;
         }
 
-        old_output = new_output;
         old_old_length = old_length;
         old_length = new_length;
-    }
-    --recursionDepth;
-    if (old_output[0] >= MSB) {
-        old_output[0] &= ~MSB;
     }
     
     unsigned long *old_input = new_input;

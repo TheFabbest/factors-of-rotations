@@ -220,14 +220,13 @@ unsigned long custom_binary_search(const unsigned long *const input, const unsig
     return left;
 }
 
-// TODO only used with usingLType = true.
-unsigned long custom_binary_search_last(const unsigned long *const input, const unsigned long *const array, const unsigned long length, const unsigned long value, const bool usingLType)
+unsigned long custom_binary_search_last(const unsigned long *const input, const unsigned long *const array, const unsigned long length, const unsigned long value)
 {
     unsigned long left = 0;
     unsigned long right = length - 1;
 
-    auto is_valid = [array, length, usingLType](unsigned long index)
-    { return (array[index] < length) && (usingLType || index == 0 || array[index - 1] != BH) && (!usingLType || index == length - 1 || array[index + 1] != BH); };
+    auto is_valid = [array, length](const unsigned long index)
+    { return (array[index] < length) && (index == length - 1 || array[index + 1] != BH); };
 
     while (right > left)
     {
@@ -275,8 +274,6 @@ unsigned long countS_Type(const unsigned long *const input, const unsigned long 
 // section 5.2 - step 1
 // find S suffixes and put indexes in SA[length-nS, length-1]
 // returns the number of S-type suffixes found (nS)
-// correct for test AABBABAB
-// updated to work on L-type suffixes as well
 void placeIndicesOf_Type(const unsigned long *const input, const unsigned long length, unsigned long * const SA, const bool usingLType)
 {
     bool nextIsL = false; // the sentinel at the end is S_TYPE
@@ -297,8 +294,6 @@ void placeIndicesOf_Type(const unsigned long *const input, const unsigned long l
 // sorts the S-type suffixes in SA[length-nS, length-1] using merge sort
 // the comparison function compares suffixes by their lexicographic order
 // according to this ordering, a word is always bigger than its prefixes
-// correct for test AABBABAB
-// updated to work on L-type suffixes as well
 void mergeSort_Substrings(const unsigned long *const input, const unsigned long length, unsigned long *const SA, const unsigned long nS, const bool usingLType)
 {
     // merge sort SA[nS, length-1] using SA[0, nS-1] as the auxiliary array, thus O(1) space
@@ -334,8 +329,6 @@ void mergeSort_Substrings(const unsigned long *const input, const unsigned long 
 //  otherwise, the one on the right comes immediately after (rank_2 = rank_1 + 1).
 // maybe this could be done together with the merge sort?
 // note: could process the input from the end, starting with the highest representable character.
-// works for test AABBABAB
-// updated to work on L-type suffixes as well
 void constructReducedProblem(const unsigned long *const input, const unsigned long length, unsigned long * const SA, const unsigned long nS, const bool usingLType)
 {
     unsigned long currentChar = 0;
@@ -355,7 +348,6 @@ void constructReducedProblem(const unsigned long *const input, const unsigned lo
 // sorts the reduced problem using heap sort
 // the reduced problem is stored in SA[length-nS, length-1]
 // when swapping elements, we also swap the corresponding indices in SA[0, nS-1]
-// correct for test AABBABAB
 void heapSortReducedProblem(unsigned long *const SA, const unsigned long length, const unsigned long nS)
 {
     BuildHeap(SA, length, nS);
@@ -460,7 +452,7 @@ void initializeSA(const unsigned long *const input, unsigned long * const SA, co
 
             if (usingLType)
             {
-                l = custom_binary_search_last(input, SA, length, input[index], true);
+                l = custom_binary_search_last(input, SA, length, input[index]);
             }
             else
             {
@@ -557,7 +549,7 @@ void case4_S(const unsigned long *const input, unsigned long *const SA, const un
 
 void sortS_body(const unsigned long *const input, unsigned long *const SA, const unsigned long length, const unsigned long j)
 {
-    const unsigned long l = custom_binary_search_last(input, SA, length, input[j], true); // modified to look for the last occurrence
+    const unsigned long l = custom_binary_search_last(input, SA, length, input[j]); // modified to look for the last occurrence
 
     if (l == 0)
     {

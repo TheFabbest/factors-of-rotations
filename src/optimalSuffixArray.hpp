@@ -933,14 +933,14 @@ void optimalSuffixArray(unsigned long *const input, unsigned long *const SA, con
         return;
     }
 
-    unsigned long *old_input = input;
     unsigned long *old_output = SA;
     unsigned long old_length = length;
     unsigned long new_output_index = 0;
     unsigned long old_old_length = old_length;
     unsigned long recursionDepth = 0;
+    unsigned long *new_input;
     while (needsRecursion) {
-        unsigned long *new_input = old_output;
+        new_input = old_output;
         unsigned long new_length = prev_nS;
         unsigned long *new_output = old_output + old_length - new_length;
         
@@ -966,7 +966,6 @@ void optimalSuffixArray(unsigned long *const input, unsigned long *const SA, con
             new_output[-1] = old_length;
         }
 
-        old_input = new_input;
         old_output = new_output;
         old_old_length = old_length;
         old_length = new_length;
@@ -975,11 +974,13 @@ void optimalSuffixArray(unsigned long *const input, unsigned long *const SA, con
     if (old_output[0] >= MSB) {
         old_output[0] &= ~MSB;
     }
+    
+    unsigned long *old_input = new_input;
 
     while (recursionDepth-- > 0) {
 
         old_length = old_old_length;
-        bool had_space = old_input[0] & MSB;
+        const bool had_space = old_input[0] & MSB;
         if (had_space) {
             old_input[0] &= ~MSB;
             old_old_length = old_input[-1];
@@ -992,7 +993,7 @@ void optimalSuffixArray(unsigned long *const input, unsigned long *const SA, con
         new_output_index += old_length - old_old_length;
         old_input = &SA[new_output_index];
 
-        bool current_have_space = old_input[0] & MSB;
+        const bool current_have_space = old_input[0] & MSB;
         if (current_have_space) {
             old_input[0] &= ~MSB;
         }
@@ -1003,9 +1004,59 @@ void optimalSuffixArray(unsigned long *const input, unsigned long *const SA, con
             old_input[0] |= MSB;
         }
     }
-
-    if (old_output[0] >= MSB) {
-        old_output[0] -= MSB;
-    }
     optimalSuffixArray_second(input, SA, length);
+}
+
+// Recursive and simpler version of optimalSuffixArray, needs log(N) memory workload
+void optimalSuffixArray_recursive(const unsigned long *const input, unsigned long *const SA, const unsigned long length)
+{    
+    if (length < 2)
+    {
+        if (length == 1)
+        {
+            SA[0] = 0;
+        }
+        return;
+    }
+
+    // check if nS <= nL
+    unsigned long nS = countS_Type(input, length);
+    if (nS == 0)
+    {
+        for (unsigned long i = 0; i < length; ++i)
+        {
+            SA[i] = length - i - 1;
+        }
+        return;
+    }
+
+    const bool usingLType = (length - nS) < nS; // if there are more L-type suffixes, we swap the roles of S and L
+    if (usingLType)
+    {
+        nS = length - nS;
+    }
+
+    // step 1
+    placeIndicesOf_Type(input, length, SA, usingLType);
+
+    // step 2
+    mergeSort_Substrings(input, length, SA, nS, usingLType);
+
+    // step 3
+    constructReducedProblem(input, length, SA, nS, usingLType);
+
+    // step 4 (no need to adapt the heap sort for L-type suffixes, it works as is)
+    heapSortReducedProblem(SA, length, nS);
+
+    // step 5
+    RestoreFromRecursion(input, length, SA, nS, usingLType);
+
+    // step 6
+    preprocess(input, SA, length, nS, usingLType);
+
+    // step 7
+    initializeSA(input, SA, length, usingLType);
+
+    // step 8
+    inducedSorting(input, SA, length, usingLType);
 }

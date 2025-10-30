@@ -16,13 +16,12 @@
 using namespace std;
 
 int main() {
-    testFactorsLynS("ABABBABABBABAC", 14);
-    return 0;
-
-    const char word[] = "AABABBBAABABBC";
+    const char word[] = "ABABBABABBABAC";
     const unsigned long word_length = (sizeof(word) / sizeof(char)) - 1;
+    
     PrintAllFactors(word, word_length);
-    cout << endl;
     PrintAllFactorsNaive(word, word_length);
+
+    cout << endl << "Done." << endl;
     return 0;
 }

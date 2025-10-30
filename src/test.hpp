@@ -6,7 +6,6 @@
 #include "SAIS.hpp"
 #include "utils.hpp"
 #include "naiveSuffix.hpp"
-#include "optimalSuffixArray.hpp"
 #include <chrono>
 
 void aux_PrintTypeArray(const char *input_word, const unsigned long word_length) {
@@ -111,7 +110,8 @@ void testFactorsLyn(const char input_word[], const unsigned long word_length) {
     }
 
     unsigned long *SA = SAIS(word, word_length, getAlphabetSize(input_word, word_length))+1;
-    unsigned long *rank = rankArrayFromSA(SA, word_length);
+    unsigned long *rank = new unsigned long[word_length];
+    rankArrayFromSA(SA, word_length, rank);
 
     unsigned long Lyn[word_length];
     LongestLyndon(word, word_length, rank, Lyn);
@@ -193,14 +193,15 @@ void testFactorsLynS(const char input_word[], const unsigned long word_length) {
     cout << factors_from_left_tree << endl;
 
     LeftChildrenWithPrefixNumber(leftTree);
-    PrintPrefixesFactorsFromLynSWithCorrespondingPrefixLength(word, word_length, LynS);
+    PrintPrefixesFactorsFromLynSWithCorrespondingPrefix(word, word_length, LynS);
     delete leftTree;
 }
 
 // i+Lyn[i] is basically the smallest index j>i for which rank[i] > rank[j]
 void propertyTest1(const char word[], unsigned long word_length) {
     unsigned long *SA = SAIS(word, word_length, getAlphabetSize(word, word_length))+1;
-    unsigned long *rank = rankArrayFromSA(SA, word_length);
+    unsigned long *rank = new unsigned long[word_length];
+    rankArrayFromSA(SA, word_length, rank);
     unsigned long Lyn[word_length];
     LongestLyndon(word, word_length, rank, Lyn);
     for (int i = 0; i < word_length; ++i) {
@@ -233,7 +234,8 @@ void propertyTest2(const char input_word[], unsigned long word_length) {
     char word[word_length+1];
     word[word_length] = '\0';
     unsigned long *SA = SAIS(input_word, word_length, getAlphabetSize(word,word_length))+1;
-    unsigned long *rank = rankArrayFromSA(SA, word_length);
+    unsigned long *rank = new unsigned long[word_length];
+    rankArrayFromSA(SA, word_length, rank);
     for (unsigned long r = 0; r < word_length; ++r) {
         rotate_copy(input_word, input_word+r, input_word+word_length, word);
         vector<string> factors = duval(string(word));

@@ -44,14 +44,10 @@ void ComputeNNS(const char* const word, const unsigned long length, unsigned lon
     }
 }
 
-unsigned long * rankArrayFromSA(const unsigned long * SA, const unsigned long n) {
-    unsigned long *rank = new unsigned long[n];
-    
+void rankArrayFromSA(const unsigned long * SA, const unsigned long n, unsigned long * const rank) {
     for (unsigned long i = 0; i < n; ++i){
         rank[SA[i]] = i;
     }
-
-    return rank;
 }
 
 #endif

@@ -972,6 +972,21 @@ void optimalSuffixArray(unsigned long *const input, unsigned long *const SA, con
     optimalSuffixArray_second(input, SA, length);
 }
 
+
+// wrapper for char input
+void optimalSuffixArray(const char * const input_chars, unsigned long *const SA, const unsigned long length)
+{
+    unsigned long * const input = new unsigned long[length];
+    for (unsigned long i = 0; i < length; ++i)
+    {
+        input[i] = static_cast<unsigned long>(static_cast<unsigned char>(input_chars[i]));
+    }
+
+    optimalSuffixArray(input, SA, length);
+
+    delete[] input;
+}
+
 // Recursive and simpler version of optimalSuffixArray, needs log(N) memory workload
 void optimalSuffixArray_recursive(const unsigned long *const input, unsigned long *const SA, const unsigned long length)
 {    

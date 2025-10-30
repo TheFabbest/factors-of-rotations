@@ -8,7 +8,7 @@
 #include <fstream>
 #include <algorithm>
 #include "tree.hpp"
-#include "SAIS.hpp"
+#include "optimalSuffixArray.hpp"
 #include "duval.hpp"
 #include "leastRotation.hpp"
 #include "computeStructures.hpp"
@@ -30,6 +30,10 @@ unsigned long getAlphabetSize(const char * const string, const unsigned long len
 
 char mapping(char c){
     return c - 96;
+}
+
+void separator() {
+    cout << "-----------------------------------" << endl;
 }
 
 char* readFile(const char* filename, unsigned long &size){
@@ -55,89 +59,146 @@ char* readFile(const char* filename, unsigned long &size){
     return buffer;
 }
 
-string GetLastFactorOfPrefix(const char* const word, unsigned long prefix_length, const unsigned long* const LynS) {
-    unsigned long len = LynS[prefix_length-1];
-    string factor;
-    for (unsigned long j = prefix_length - len; j < prefix_length; ++j) {
-        factor += word[j];
-    }
-    return factor;
+string_view GetLastFactorOfPrefix(const char* const word, unsigned long prefix_length, const unsigned long* const LynS) {
+    const unsigned long len = LynS[prefix_length-1];
+    return string_view(word + prefix_length - len, len);
+}
+
+string_view GetLastFactorOfSuffix(const char* const word, unsigned long suffix_start, const unsigned long* const Lyn) {
+    const unsigned long len = Lyn[suffix_start];
+    return string_view(word + suffix_start, len);
 }
 
 void PrintPrefixesFactorsFromLynS(const char* const word, const unsigned long word_length, const unsigned long* const LynS) {
-    cout << "Factors from left tree: " << endl;
+    cout << "All factors that appear in prefixes, from LynS: " << endl;
     for (unsigned long i = 0; i < word_length-1; ++i) {
-        cout << GetLastFactorOfPrefix(word, i+1, LynS);
+        cout << GetLastFactorOfPrefix(word, i+1, LynS) << ", ";
     }
     cout << endl;
 }
 
-void PrintPrefixesFactorsFromLynSWithCorrespondingPrefixLength(const char* const word, const unsigned long word_length, const unsigned long* const LynS) {
-    cout << "Factors from left tree: " << endl;
-    for (unsigned long i = 0; i < word_length-1; ++i) {
-        cout << "Prefix length " << i+1 << ": ";
-        string factorization = "";
-        unsigned long j = i+1;
-        while (j > 0) {
-            factorization = GetLastFactorOfPrefix(word, j, LynS) + ", " + factorization;
-            j -= LynS[j-1];
-        }
-        cout << factorization << endl;
+void PrintSuffixesFactorsFromLyn(const char* const word, const unsigned long word_length, const unsigned long* const Lyn) {
+    cout << "All factors that appear in suffixes, from Lyn: " << endl;
+    for (unsigned long i = word_length-1; i > 1; --i) {
+        cout << GetLastFactorOfSuffix(word, i, Lyn) << ", ";
     }
     cout << endl;
 }
+
+
+void PrintPrefixesFactorsFromLynSWithCorrespondingPrefix(const char * const word,
+                               const unsigned long word_length,
+                               const unsigned long* LynS) {
+    cout << "Exact factorization of each prefix, from LynS: " << endl;
+
+    for (unsigned long prefix_len = 1; prefix_len < word_length; ++prefix_len) {
+        cout << "Prefix " << string_view(word, prefix_len) << ": ";
+        
+        vector<string_view> factors;
+        unsigned long j = prefix_len;
+        while (j > 0) {
+            string_view last = GetLastFactorOfPrefix(word, j, LynS);
+            factors.insert(factors.end(), last);
+            j -= last.size();
+        }
+
+        for (unsigned long k = 0; k < factors.size(); ++k) {
+            if (k) cout << ", ";
+            cout << factors[k];
+        }
+        cout << '\n';
+    }
+    cout << '\n';
+}
+
+void PrintSuffixesFactorsFromLynWithCorrespondingSuffix(const char * const word,
+                               const unsigned long word_length,
+                               const unsigned long* Lyn) {
+    cout << "Exact factorization of each suffix, from Lyn: " << endl;
+
+    for (unsigned long suffix_start = 1; suffix_start < word_length; ++suffix_start) {
+        cout << "Suffix " << string_view(word + suffix_start, word_length - suffix_start) << ": ";
+        
+        vector<string_view> factors;
+        unsigned long j = suffix_start;
+        while (j < word_length) {
+            string_view last = GetLastFactorOfSuffix(word, j, Lyn);
+            factors.insert(factors.end(), last);
+            j += last.size();
+        }
+
+        for (unsigned long k = 0; k < factors.size(); ++k) {
+            if (k) cout << ", ";
+            cout << factors[k];
+        }
+        cout << '\n';
+    }
+    cout << '\n';
+}
+
 
 void PrintAllFactorsNaive(const char *input_word, const unsigned long word_length) {
-    cout << "Computing factors naively for " << input_word << ": ";
+    cout << "Naively computing all factors of all rotations, with repetition:" << endl;
     char* rotation = new char[word_length+1];
     for (unsigned long i = 0; i < word_length; ++i) {
         rotate_copy(input_word, input_word+i, input_word+word_length, rotation);
+        rotation[word_length] = '\0';
+        cout << "Factors of rotation " << rotation << ": ";
         for (string s : duval(string(rotation))) {
             cout << s << ", ";
         }
+        cout << endl;
     }
     delete[] rotation;
-    cout << endl;
 }
 
+
+// this function shows what we implemented, it is just a proof of concept
 void PrintAllFactors(const char * const input_word, const unsigned long word_length) {
-    // find smallest rotation
-    // dynamic
+    // allocate memory
     char* word = new char[word_length+1];
 
+    // find smallest rotation
     const unsigned long rot = least_rotation(input_word, word_length);
     rotate_copy(input_word, input_word+rot, input_word+word_length, word);
     word[word_length] = '\0';
-    // check if it's periodic (naively)
+
+    // check if it's periodic
     const vector<string> factors = duval(string(word));
     if (factors.size() == 1) {
-        const unsigned long alphabet_size = getAlphabetSize(word, word_length);
+        // compute suffix array
+        unsigned long * const SA = new unsigned long[word_length];
+        optimalSuffixArray(word, SA, word_length);
+
         // rank array
-        unsigned long *SA = SAIS(word, word_length, alphabet_size)+1;
-        unsigned long *rank = rankArrayFromSA(SA, word_length);
+        unsigned long * const rank = new unsigned long[word_length];
+        rankArrayFromSA(SA, word_length, rank);
 
         // Lyndon Table
-        unsigned long* Lyn = new unsigned long[word_length];
+        unsigned long* const Lyn = new unsigned long[word_length];
         LongestLyndon(word, word_length, rank, Lyn);
 
-        // Lyndon Suffix Table
-        unsigned long* LynS = new unsigned long[word_length];
+        // Lyndon Suffix Table (LynS)
+        unsigned long* const LynS = new unsigned long[word_length];
         LyndonSuffixTable(word, word_length, LynS);
 
-        PrintPrefixesFactorsFromLynS(word, word_length, LynS);
+        separator();
         
-        // loop (Lyndon Table)
-        cout << "Factors from right tree: " << endl;
-        for (unsigned long i = 1; i < word_length; ++i) {
-            unsigned long len = Lyn[i];
-            for (unsigned long j = i; j < i+len; ++j) {
-                cout << word[j];
-            }
-            cout << ", ";
-        }
-        cout << endl;
+        // print factors for each prefix
+        PrintPrefixesFactorsFromLynS(word, word_length, LynS);
 
-        delete[] (SA-1);
+        // print factors for each prefix, with corresponding prefix
+        PrintPrefixesFactorsFromLynSWithCorrespondingPrefix(word, word_length, LynS);
+        
+        separator();
+
+        // print factors for each suffix
+        PrintSuffixesFactorsFromLyn(word, word_length, Lyn);
+
+        // print factors for each suffix, with corresponding suffix
+        PrintSuffixesFactorsFromLynWithCorrespondingSuffix(word, word_length, Lyn);
+
+        delete[] SA;
         delete[] word;
         delete[] rank;
         delete[] Lyn;

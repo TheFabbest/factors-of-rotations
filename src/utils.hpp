@@ -55,6 +55,38 @@ char* readFile(const char* filename, unsigned long &size){
     return buffer;
 }
 
+string GetLastFactorOfPrefix(const char* const word, unsigned long prefix_length, const unsigned long* const LynS) {
+    unsigned long len = LynS[prefix_length-1];
+    string factor;
+    for (unsigned long j = prefix_length - len; j < prefix_length; ++j) {
+        factor += word[j];
+    }
+    return factor;
+}
+
+void PrintPrefixesFactorsFromLynS(const char* const word, const unsigned long word_length, const unsigned long* const LynS) {
+    cout << "Factors from left tree: " << endl;
+    for (unsigned long i = 0; i < word_length-1; ++i) {
+        cout << GetLastFactorOfPrefix(word, i+1, LynS);
+    }
+    cout << endl;
+}
+
+void PrintPrefixesFactorsFromLynSWithCorrespondingPrefixLength(const char* const word, const unsigned long word_length, const unsigned long* const LynS) {
+    cout << "Factors from left tree: " << endl;
+    for (unsigned long i = 0; i < word_length-1; ++i) {
+        cout << "Prefix length " << i+1 << ": ";
+        string factorization = "";
+        unsigned long j = i+1;
+        while (j > 0) {
+            factorization = GetLastFactorOfPrefix(word, j, LynS) + ", " + factorization;
+            j -= LynS[j-1];
+        }
+        cout << factorization << endl;
+    }
+    cout << endl;
+}
+
 void PrintAllFactorsNaive(const char *input_word, const unsigned long word_length) {
     cout << "Computing factors naively for " << input_word << ": ";
     char* rotation = new char[word_length+1];
@@ -92,18 +124,9 @@ void PrintAllFactors(const char * const input_word, const unsigned long word_len
         unsigned long* LynS = new unsigned long[word_length];
         LyndonSuffixTable(word, word_length, LynS);
 
-        // loop (Lyndon Suffix Table)
-        cout << "Factors from left tree: " << endl;
-        for (unsigned long i = 0; i < word_length-1; ++i) {
-            unsigned long len = LynS[i];
-            for (unsigned long j = i-len+1; j <= i; ++j) {
-                cout << word[j];
-            }
-            cout << ", ";
-        }
+        PrintPrefixesFactorsFromLynS(word, word_length, LynS);
         
         // loop (Lyndon Table)
-        cout << endl;
         cout << "Factors from right tree: " << endl;
         for (unsigned long i = 1; i < word_length; ++i) {
             unsigned long len = Lyn[i];

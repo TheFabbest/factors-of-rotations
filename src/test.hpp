@@ -193,6 +193,7 @@ void testFactorsLynS(const char input_word[], const unsigned long word_length) {
     cout << factors_from_left_tree << endl;
 
     LeftChildrenWithPrefixNumber(leftTree);
+    PrintPrefixesFactorsFromLynSWithCorrespondingPrefixLength(word, word_length, LynS);
     delete leftTree;
 }
 

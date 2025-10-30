@@ -888,34 +888,6 @@ void optimalSuffixArray_second(const unsigned long *const input, unsigned long *
     inducedSorting(input, SA, length, usingLType);
 }
 
-
-/*
-optimalSuffixArray(SA, SA + length - nS, nS);
-*/
-/*
-AABA
-0x2162adf4a60 0x2162adf4a20 4
-0x2162adf4a20 0x2162adf4a28 2
-0x2162adf4a28 0x2162adf4a2c 1
-
-AABBB
-0x1e2cf7567d0 0x1e2cf7569d0 5
-0x1e2cf7569d0 0x1e2cf7569dc 2
-0x1e2cf7569dc 0x1e2cf7569e0 1
-
-RKSFFYBCYJ
-LSLSSLSSLL
-0x27d9cc7a670 0x27d9cc7a340 10
-0x27d9cc7a340 0x27d9cc7a354 5
-0x27d9cc7a354 0x27d9cc7a360 2
-
-DVEGDYWRNY
-0x29bfec58910 0x29bfec589d0 10
-0x29bfec589d0 0x29bfec589e8 4
-0x29bfec589e8 0x29bfec589f0 2
-0x29bfec589f0 0x29bfec589f4 1
-*/
-
 void optimalSuffixArray(unsigned long *const input, unsigned long *const SA, const unsigned long length)
 {
     unsigned long prev_nS;

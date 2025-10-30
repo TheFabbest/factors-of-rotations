@@ -129,6 +129,24 @@ void LeftChildren(const Node* tree, vector<Node*> &output) {
     LeftChildren(tree->right, output);
 }
 
+// each node returns its own factorization as a string and prints the factors of its left children, preceded by the factors found in the prefixes up to this node
+string LeftChildrenWithPrefixNumber(const Node* tree, int my_length_as_a_prefix = 0, string old_factors = "") {
+    if (tree == nullptr) return "";
+    if (tree->left == nullptr && tree->right == nullptr) {
+        return string(1, tree->value);
+    }
+
+    string me = "";
+    if (tree->left != nullptr) {
+        me += LeftChildrenWithPrefixNumber(tree->left, my_length_as_a_prefix, old_factors);
+        my_length_as_a_prefix += me.size();
+        cout << "Prefix of length " << my_length_as_a_prefix << " has factors: " << old_factors << me << endl;
+    }
+    me += LeftChildrenWithPrefixNumber(tree->right, my_length_as_a_prefix, old_factors + me + ", ");
+
+    return me;
+}
+
 
 Node* LeftLyndonTree(const char* const word, const unsigned long length, unsigned long* const LynS, Node** roots) {
     LynS[0] = 1;

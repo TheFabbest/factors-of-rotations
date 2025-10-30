@@ -16,9 +16,7 @@
 using namespace std;
 
 int main() {
-    routineTestForWorkingWithOptimalSuffix();
-
-    //executionTimeOptimalSuffixArray(1000000, 1);
+    testFactorsLynS("ABABBABABBABAC", 14);
     return 0;
 
     const char word[] = "AABABBBAABABBC";

@@ -535,7 +535,7 @@ void case4(const unsigned long *const input, unsigned long *const SA, const unsi
 
 void case4_S(const unsigned long *const input, unsigned long *const SA, const unsigned long l, const unsigned long j, const unsigned long length)
 {
-    unsigned long rL = l + 1;
+    unsigned long rL = l;
     while (rL > 0 && SA[rL - 1] != R1 && input[SA[rL - 1]] == input[j])
     {
         --rL;
@@ -549,28 +549,25 @@ void case4_S(const unsigned long *const input, unsigned long *const SA, const un
 
 void sortS_body(const unsigned long *const input, unsigned long *const SA, const unsigned long length, const unsigned long j)
 {
-    const unsigned long l = custom_binary_search_last(input, SA, length, input[j]); // modified to look for the last occurrence
-
-    if (l == 0)
-    {
-        // skipping as edge case, clearly the only suffix in the bucket
-        return;
-    }
 
     // skip L type suffixes, this does not cover case 4 (but is always true for case 4)
     if (j == length - 1 || input[j] > input[j + 1])
     {
         return;
     }
+
+    const unsigned long l = custom_binary_search_last(input, SA, length, input[j]); // modified to look for the last occurrence
+    if (l == 0)
+    {
+        // skipping as edge case, clearly the only suffix in the bucket
+        return;
+    }
     else if (input[j] == input[j + 1])
     {
-        if (!(SA[l - 1] == BH || SA[l - 1] == R2 || SA[l - 1] == R1))
+        if (!(SA[l - 1] == BH || SA[l - 1] == R2 || SA[l - 1] == R1 || SA[l - 1] == BT))
         {
             // skip if bucket is filled (j is not L-type)
-            if (SA[l - 1] != BT && SA[l - 1] != R1 && SA[l - 1] != BH && SA[l - 1] != R2)
-            {
-                case4_S(input, SA, l, j, length);
-            }
+            case4_S(input, SA, l, j, length);
             return;
         }
     }
@@ -623,8 +620,8 @@ void sortS_body(const unsigned long *const input, unsigned long *const SA, const
             else
             {
                 // case 2 (2)
-                const unsigned long rL = l - 2 - c;              // TODO see
-                std::move(SA + rL + 1, SA + l - 2, SA + rL + 2); // see
+                const unsigned long rL = l - 2 - c;
+                std::move(SA + rL + 1, SA + l - 2, SA + rL + 2);
                 SA[rL + 1] = j;
                 SA[l - 1] = R2;
             }
@@ -650,27 +647,24 @@ void sortS_body(const unsigned long *const input, unsigned long *const SA, const
 
 void sortL_body(const unsigned long *const input, unsigned long *const SA, const unsigned long length, const unsigned long j)
 {
+    // skip S type suffixes, this does not cover case 4 (but is always true for case 4)
+    if (j != length - 1 && input[j] < input[j + 1])
+    {
+        return;
+    }
+
     const unsigned long l = custom_binary_search(input, SA, length, input[j], false);
     if (l == length - 1)
     {
         // skipping as edge case, clearly the only suffix in the bucket
         return;
     }
-
-    // skip S type suffixes, this does not cover case 4 (but is always true for case 4)
-    if (j != length - 1 && input[j] < input[j + 1])
-    {
-        return;
-    }
     else if (j != length - 1 && input[j] == input[j + 1])
     {
-        if (!(SA[l + 1] == BH || SA[l + 1] == R2 || SA[l + 1] == R1))
+        if (!(SA[l + 1] == BH || SA[l + 1] == R2 || SA[l + 1] == R1 || SA[l + 1] == BT))
         {
             // skip if bucket is filled (j is not L-type)
-            if (SA[l + 1] != BT && SA[l + 1] != R1 && SA[l + 1] != BH && SA[l + 1] != R2)
-            {
-                case4(input, SA, l, j, length);
-            }
+            case4(input, SA, l, j, length);
             return;
         }
     }
@@ -761,8 +755,7 @@ void sortS(const unsigned long *const input, unsigned long * const SA, const uns
         {
             if (SA[i] == BH)
                 ++iter; // skips counter
-            cout << "skipping index " << i << " because SA[i] is a special symbol." << endl;
-            pause();
+                
             continue;
         }
 
@@ -772,8 +765,7 @@ void sortS(const unsigned long *const input, unsigned long * const SA, const uns
         // does this ever happen? Should this happen?
         while (SA[i] - 1 != j && SA[i] < length && SA[i] != 0) // changed current, repeat.
         {
-            cout << "REPEATING" << endl;
-            pause();
+            
             j = SA[i] - 1;
             sortS_body(input, SA, length, j);
         }
@@ -794,8 +786,7 @@ void sortL(const unsigned long *const input, unsigned long * const SA, const uns
         {
             if (SA[i] == BH)
                 ++i; // skips counter
-            cout << "skipping index " << i << " because SA[i] is a special symbol." << endl;
-            pause();
+                
             continue;
         }
 
@@ -805,8 +796,7 @@ void sortL(const unsigned long *const input, unsigned long * const SA, const uns
         // does this ever happen? Should this happen?
         while (SA[i] - 1 != j && SA[i] < length && SA[i] != 0) // changed current, repeat.
         {
-            cout << "REPEATING" << endl;
-            pause();
+            
             j = SA[i] - 1;
             sortL_body(input, SA, length, j);
         }

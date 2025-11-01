@@ -16,9 +16,6 @@
 using namespace std;
 
 int main() {
-    
-    executionTimeOptimalSuffixArray(1000000, 1);
-    return 0;
     routineTestForWorkingWithOptimalSuffix();
     return 0;
 

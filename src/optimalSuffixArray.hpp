@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <iostream>
 #include <limits>
+#include <climits>
 using namespace std;
 
 #define BT -1UL
@@ -519,8 +520,17 @@ void initializeSA(const unsigned long *const input, unsigned long * const SA, co
     }
 }
 
+unsigned long case4_L_cached_l = ULONG_MAX;
 void case4(const unsigned long *const input, unsigned long *const SA, const unsigned long l, const unsigned long j, const unsigned long length)
 {
+    // case 4 cannot be applied multiple times for the same l in one induced sorting step, this caching mechanism avoids redundant work (with great performance improvements)
+    if (case4_L_cached_l != ULONG_MAX && l == case4_L_cached_l) {
+        return;
+    }
+    else {
+        case4_L_cached_l = l;
+    }
+
     unsigned long rL = l + 1;
     while (rL < length && SA[rL] != R1 && (SA[rL] < length && input[SA[rL]] == input[j]))
     {
@@ -533,8 +543,17 @@ void case4(const unsigned long *const input, unsigned long *const SA, const unsi
     }
 }
 
+unsigned long case4_S_cached_l = ULONG_MAX;
 void case4_S(const unsigned long *const input, unsigned long *const SA, const unsigned long l, const unsigned long j, const unsigned long length)
 {
+    // case 4 cannot be applied multiple times for the same l in one induced sorting step, this caching mechanism avoids redundant work (with great performance improvements)
+    if (case4_S_cached_l != ULONG_MAX && l == case4_S_cached_l) {
+        return;
+    }
+    else {
+        case4_S_cached_l = l;
+    }
+
     unsigned long rL = l;
     while (rL > 0 && SA[rL - 1] != R1 && input[SA[rL - 1]] == input[j])
     {
@@ -545,6 +564,11 @@ void case4_S(const unsigned long *const input, unsigned long *const SA, const un
     {
         SA[rL - 1] = j;
     }
+}
+
+void reset_case4_caches() {
+    case4_L_cached_l = ULONG_MAX;
+    case4_S_cached_l = ULONG_MAX;
 }
 
 void sortS_body(const unsigned long *const input, unsigned long *const SA, const unsigned long length, const unsigned long j)
@@ -765,7 +789,6 @@ void sortS(const unsigned long *const input, unsigned long * const SA, const uns
         // does this ever happen? Should this happen?
         while (SA[i] - 1 != j && SA[i] < length && SA[i] != 0) // changed current, repeat.
         {
-            
             j = SA[i] - 1;
             sortS_body(input, SA, length, j);
         }
@@ -796,7 +819,6 @@ void sortL(const unsigned long *const input, unsigned long * const SA, const uns
         // does this ever happen? Should this happen?
         while (SA[i] - 1 != j && SA[i] < length && SA[i] != 0) // changed current, repeat.
         {
-            
             j = SA[i] - 1;
             sortL_body(input, SA, length, j);
         }
@@ -807,6 +829,7 @@ void sortL(const unsigned long *const input, unsigned long * const SA, const uns
 // for usingLType=true, go from right to left and keep the "rightmost free" instead of leftmost free
 void inducedSorting(const unsigned long *const input, unsigned long * const SA, const unsigned long length, const bool usingLType)
 {
+    reset_case4_caches();
     if (usingLType)
         sortS(input, SA, length);
     else

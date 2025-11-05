@@ -188,7 +188,6 @@ Node* RightLyndonTree(const char* const word, const unsigned long length, const 
     nodes[j] = new Node(word[j]);
     for (unsigned long i = length-1; i > 0; --i) {
         nodes[i-1] = new Node(word[i-1]);
-
         while (rank[i-1] < rank [j]) {
             Node *father = new Node();
             father->left = nodes[i-1];

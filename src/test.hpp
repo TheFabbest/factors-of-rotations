@@ -3,10 +3,10 @@
 
 #include <functional>
 #include <math.h>
+#include <chrono>
 #include "SAIS.hpp"
 #include "utils.hpp"
 #include "naiveSuffix.hpp"
-#include <chrono>
 
 void aux_PrintTypeArray(const char *input_word, const unsigned long word_length) {
     bool *typeArray = new bool[word_length+1];
@@ -18,8 +18,28 @@ void aux_PrintTypeArray(const char *input_word, const unsigned long word_length)
     cout << endl;
 }
 
+void aux_PrintArray(const unsigned long *array, const unsigned long length, const string array_name) {
+    cout << array_name << ": ";
+    for (unsigned long i = 0; i < length; ++i) {
+        cout << array[i] << " ";
+    }
+    cout << endl;
+}
+
+char *generateRandomString(const unsigned long SIZE, const char MIN_ALPHABET, const char MAX_ALPHABET) {
+    const unsigned long ALPHABET_SIZE = MAX_ALPHABET - MIN_ALPHABET + 1;
+    char *word = new char [SIZE+1];
+
+    srand(time(0));
+    for (unsigned long i = 0; i < SIZE; ++i){
+        word[i] = MIN_ALPHABET + rand() % ALPHABET_SIZE;
+    }
+    word[SIZE] = '\0';
+    return word;
+}
+
 void testForEachWordOfLength(const unsigned long length, const function<void (char[], unsigned long)> func) {
-    char word[length+1];
+    char *word = new char[length+1];
     for (unsigned long i = 0; i < length; ++i) {
         word[i] = 'A';
     }
@@ -44,22 +64,47 @@ void testForEachWordOfLength(const unsigned long length, const function<void (ch
             }
         }
     }
+    delete[] word;
+}
+
+void testRandomEdgeChars(const unsigned long SIZE){
+    static const char MIN_CH = 'A';
+    static const char MAX_CH = 'E';
+    static const unsigned long ul_alphabet[] = {0, LONG_MAX, ULONG_MAX-2, ULONG_MAX-1, ULONG_MAX};
+
+    const char * const word = generateRandomString(SIZE, MIN_CH, MAX_CH);
+    unsigned long * const input_as_long = new unsigned long [SIZE];
+    for (unsigned long i = 0; i < SIZE; ++i){
+        input_as_long[i] = ul_alphabet[word[i]-MIN_CH];
+    }
+    
+    unsigned long* const SA_optimal = new unsigned long [SIZE];
+    optimalSuffixArray(input_as_long, SA_optimal, SIZE);
+    
+    const unsigned long * const suffix_array_SAIS = SAIS(word, SIZE, MAX_CH - MIN_CH + 1) + 1;
+    
+    // look for differences
+    for (unsigned long i = 0; i < SIZE; ++i) {
+        if (SA_optimal[i] != suffix_array_SAIS[i]) {
+            cout << "ERROR for string " << word << endl;
+            cout << "ERROR at " << i << " - SA_optimal was '" << SA_optimal[i] << "' while SA_SAIS was '" << suffix_array_SAIS[i] << "'" << endl;
+            aux_PrintArray(SA_optimal, SIZE, "SA_optimal");
+            aux_PrintArray(suffix_array_SAIS, SIZE, "SA_SAIS");
+            cin.get();
+        }
+    }
+
+    delete[] word;
+    delete[] input_as_long;
+    delete[] SA_optimal;
+    delete[] (suffix_array_SAIS - 1);
 }
 
 void testOneRandom(const unsigned long SIZE){
-    const unsigned long MIN_ALPHABET = 'A';
-    const unsigned long MAX_ALPHABET = 'Z';
-    const unsigned long ALPHABET_SIZE = MAX_ALPHABET - MIN_ALPHABET + 1;
-    
-    char *word = new char [SIZE+1];
+    char *word = generateRandomString(SIZE, 'A', 'Z');
     unsigned long *input_as_long = new unsigned long [SIZE];
-
-    srand(time(0));
-    for (unsigned long i = 0; i < SIZE; ++i){
-        word[i] = MIN_ALPHABET + rand() % ALPHABET_SIZE;
-        input_as_long[i] = word[i];
-    }
-    word[SIZE] = '\0';
+    char_to_ulong_array(word, input_as_long, SIZE);
+    
     unsigned long* SA_optimal = new unsigned long [SIZE];
     optimalSuffixArray(input_as_long, SA_optimal, SIZE);
     unsigned long *SA_naive = buildSuffixArray(word, SIZE);
@@ -67,21 +112,10 @@ void testOneRandom(const unsigned long SIZE){
     // look for differences
     for (unsigned long i = 0; i < SIZE; ++i) {
         if (SA_optimal[i] != SA_naive[i]) {
-            cout << "ERROR for string ";
-            for (unsigned long i = 0; i < SIZE; ++i) {
-                cout << word[i];
-            }
-            cout << endl;
+            cout << "ERROR for string " << word << endl;
             cout << "ERROR at " << i << " - SA_optimal was '" << SA_optimal[i] << "' while SA_native was '" << SA_naive[i] << "'" << endl;
-
-            cout << "SA_optimal: ";
-            for (unsigned long j = 0; j < SIZE; ++j){
-                cout << SA_optimal[j] << " ";
-            }
-            cout << endl << "SA_naive: ";
-            for (unsigned long j = 0; j < SIZE; ++j){
-                cout << SA_naive[j] << " ";
-            }
+            aux_PrintArray(SA_optimal, SIZE, "SA_optimal");
+            aux_PrintArray(SA_naive, SIZE, "SA_naive");
             cin.get();
         }
     }
@@ -96,7 +130,7 @@ void testOneRandom(const unsigned long SIZE){
 
 
 void testFactorsLyn(const char input_word[], const unsigned long word_length) {
-    char word[word_length+1];
+    char *word = new char[word_length+1];
     unsigned long least = least_rotation(input_word, word_length);
     rotate_copy(input_word, input_word+least, input_word+word_length, word);
     word[word_length] = '\0';
@@ -113,7 +147,7 @@ void testFactorsLyn(const char input_word[], const unsigned long word_length) {
     unsigned long *rank = new unsigned long[word_length];
     rankArrayFromSA(SA, word_length, rank);
 
-    unsigned long Lyn[word_length];
+    unsigned long *Lyn = new unsigned long[word_length];
     LongestLyndon(word, word_length, rank, Lyn);
 
     Node* rightTree = RightLyndonTree(word, word_length, rank, Lyn);
@@ -145,10 +179,13 @@ void testFactorsLyn(const char input_word[], const unsigned long word_length) {
 
     delete[] (SA-1);
     delete[] rank;
+    delete[] word;
+    delete[] Lyn;
+    delete rightTree;
 }
 
 void testFactorsLynS(const char input_word[], const unsigned long word_length) {
-    char word[word_length+1];
+    char *word = new char[word_length+1];
     unsigned long least = least_rotation(input_word, word_length);
     rotate_copy(input_word, input_word+least, input_word+word_length, word);
     word[word_length] = '\0';
@@ -161,10 +198,10 @@ void testFactorsLynS(const char input_word[], const unsigned long word_length) {
         return;
     }
 
-    unsigned long LynS[word_length];
+    unsigned long *LynS = new unsigned long[word_length];
     LyndonSuffixTable(word, word_length, LynS);
 
-    Node* roots[word_length];
+    Node** roots = new Node* [word_length];
     Node* leftTree = LeftLyndonTree(word, word_length, LynS, roots);
     
     vector<Node*> factors_in_prefixes;
@@ -195,6 +232,9 @@ void testFactorsLynS(const char input_word[], const unsigned long word_length) {
     LeftChildrenWithPrefixNumber(leftTree);
     PrintPrefixesFactorsFromLynSWithCorrespondingPrefix(word, word_length, LynS);
     delete leftTree;
+    delete[] roots;
+    delete[] word;
+    delete[] LynS;
 }
 
 // i+Lyn[i] is basically the smallest index j>i for which rank[i] > rank[j]
@@ -202,7 +242,7 @@ void propertyTest1(const char word[], unsigned long word_length) {
     unsigned long *SA = SAIS(word, word_length, getAlphabetSize(word, word_length))+1;
     unsigned long *rank = new unsigned long[word_length];
     rankArrayFromSA(SA, word_length, rank);
-    unsigned long Lyn[word_length];
+    unsigned long *Lyn = new unsigned long[word_length];
     LongestLyndon(word, word_length, rank, Lyn);
     for (int i = 0; i < word_length; ++i) {
         for (int j = i+1; j < i+Lyn[i]; ++j) {
@@ -223,6 +263,7 @@ void propertyTest1(const char word[], unsigned long word_length) {
 
     delete[] (SA-1);
     delete[] rank;
+    delete[] Lyn;
 }
 
 // for each factor beginning at index i of each rotation of the word it is true that rank[i] < rank[j] for each j in the factor
@@ -231,7 +272,7 @@ void propertyTest2(const char input_word[], unsigned long word_length) {
         cout << "skipping" << endl;
         return;
     }
-    char word[word_length+1];
+    char *word = new char[word_length+1];
     word[word_length] = '\0';
     unsigned long *SA = SAIS(input_word, word_length, getAlphabetSize(word,word_length))+1;
     unsigned long *rank = new unsigned long[word_length];
@@ -252,11 +293,12 @@ void propertyTest2(const char input_word[], unsigned long word_length) {
                     cin.get();
                 }
             }
-            i+= factor.length();
+            i += factor.length();
         }
     }
     delete[] (SA-1);
     delete[] rank;
+    delete[] word;
 }
 
 void testSAIS(const char input_word[], unsigned long word_length) {
@@ -276,14 +318,8 @@ void testSAIS(const char input_word[], unsigned long word_length) {
             cout << "-------------------------" << endl;
             cout << "ERROR: " << input_word << endl;
             cout << "SA[" << i << "] = " << SA[i] << ", SA_naive[" << i << "] = " << SA_naive[i] << endl;
-            for (unsigned long j = 0; j < word_length; ++j) {
-                cout << SA[j] << " ";
-            }
-            cout << endl;
-            for (unsigned long j = 0; j < word_length; ++j) {
-                cout << SA_naive[j] << " ";
-            }
-            cout << endl;
+            aux_PrintArray(SA, word_length, "SA");
+            aux_PrintArray(SA_naive, word_length, "SA_naive");
             cin.get();
         }
     }
@@ -298,14 +334,11 @@ void testOptimalSuffixArray(const char input_word[], const unsigned long word_le
 
     // calculate suffix array naively
     unsigned long *SA_optimal = new unsigned long[word_length];
-    unsigned long *input_as_long = new unsigned long[word_length];
-    for (unsigned long i = 0; i < word_length; ++i) {
-        input_as_long[i] = input_word[i];
-    }
+    unsigned long *input_as_long = new unsigned long [word_length];
+    char_to_ulong_array(input_word, input_as_long, word_length);
 
     aux_PrintTypeArray(input_word, word_length);
     optimalSuffixArray(input_as_long, SA_optimal, word_length);
-    cout << "Optimal Suffix Array for " << input_word << " is done." << endl;
     
     // calculate naively
     unsigned long *SA = buildSuffixArray(input_word, word_length);
@@ -316,14 +349,8 @@ void testOptimalSuffixArray(const char input_word[], const unsigned long word_le
             cout << "-------------------------" << endl;
             cout << "ERROR: " << input_word << endl;
             cout << "SA[" << i << "] = " << SA[i] << ", SA_optimal[" << i << "] = " << SA_optimal[i] << endl;
-            for (unsigned long j = 0; j < word_length; ++j) {
-                cout << SA[j] << " ";
-            }
-            cout << endl;
-            for (unsigned long j = 0; j < word_length; ++j) {
-                cout << SA_optimal[j] << " ";
-            }
-            cout << endl;
+            aux_PrintArray(SA, word_length, "SA");
+            aux_PrintArray(SA_optimal, word_length, "SA_optimal");
 
             cout << "SUFFIXES:" << endl;
             cout << string(input_word+SA[i], word_length - SA[i]) << endl;
@@ -332,19 +359,12 @@ void testOptimalSuffixArray(const char input_word[], const unsigned long word_le
         }
     }
     cout << "Optimal Suffix Array for " << input_word << " is correct." << endl;
-    cout << "SA_optimal: ";
-    for (unsigned long i = 0; i < word_length; ++i) {
-        cout << SA_optimal[i] << " ";
-    }
-    cout << endl << "SA: ";
-    for (unsigned long i = 0; i < word_length; ++i) {
-        cout << SA[i] << " ";
-    }
-    cout << endl;
+    aux_PrintArray(SA_optimal, word_length, "SA_optimal");
+    aux_PrintArray(SA, word_length, "SA");
+    cout << "done" << endl;
     delete[] SA;
     delete[] SA_optimal;
     delete[] input_as_long;
-    cout << "done" << endl;
 }
 
 void testForSize(const unsigned long test_size) {
@@ -362,11 +382,7 @@ void testForSize(const unsigned long test_size) {
     testForEachWordOfLength(test_size, testOptimalSuffixArray);
 }
 
-void routineTestForWorkingWithOptimalSuffix() {
-    for (int i = 1; i <= 5; ++i) {
-        testForEachWordOfLength(i, testOptimalSuffixArray);
-    }
-    
+void testRandom() {
     for (int i = 0; i < 10000; ++i) {
         testOneRandom(10);
     }
@@ -391,7 +407,7 @@ void executionTimeOptimalSuffixArray(const unsigned long SIZE, const unsigned lo
 
     unsigned long *input_as_long = new unsigned long [SIZE];
 
-    //srand(time(0));
+    srand(time(0));
     for (unsigned long i = 0; i < SIZE; ++i){
         input_as_long[i] = MIN_ALPHABET + rand() % ALPHABET_SIZE;
     }
@@ -408,10 +424,6 @@ void executionTimeOptimalSuffixArray(const unsigned long SIZE, const unsigned lo
 
     delete[] SA_optimal;
     delete[] input_as_long;
-}
-
-void testAll(){
-    testForSize(5);
 }
 
 #endif

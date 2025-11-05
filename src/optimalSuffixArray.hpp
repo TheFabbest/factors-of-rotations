@@ -24,6 +24,14 @@ inline void pause()
     // cin.get();
 }
 
+void char_to_ulong_array(const char *const input_chars, unsigned long *const output, const unsigned long length)
+{
+    for (unsigned long i = 0; i < length; ++i)
+    {
+        output[i] = static_cast<unsigned long>(static_cast<unsigned char>(input_chars[i]));
+    }
+}
+
 /* obtains the last index of substrings from observation 2 from the paper:
     For any index i of T, let j ∈[i +1, n −1] be the smallest index such that T[j] < T[j +1] (So T[j] is S-type).
     Furthermore let k ∈[i + 1, j] be the smallest index such that T[l] = T[j] for any k ≤ l ≤ j. Then T[k] is the first S-type
@@ -990,10 +998,7 @@ void optimalSuffixArray(unsigned long *const input, unsigned long *const SA, con
 void optimalSuffixArray(const char * const input_chars, unsigned long *const SA, const unsigned long length)
 {
     unsigned long * const input = new unsigned long[length];
-    for (unsigned long i = 0; i < length; ++i)
-    {
-        input[i] = static_cast<unsigned long>(static_cast<unsigned char>(input_chars[i]));
-    }
+    char_to_ulong_array(input_chars, input, length);
 
     optimalSuffixArray(input, SA, length);
 

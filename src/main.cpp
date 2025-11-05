@@ -11,12 +11,18 @@
 */
 
 #include <iostream>
+#include <climits>
 #include "utils.hpp"
 #include "test.hpp"
 using namespace std;
 
+#define A 0
+#define B ULONG_MAX-2
+#define C ULONG_MAX-1
+#define D ULONG_MAX
+
 int main() {
-    routineTestForWorkingWithOptimalSuffix();
+    testRandomEdgeChars(100);
     return 0;
 
     const char word[] = "ABABBABABBABAC";

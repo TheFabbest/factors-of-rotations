@@ -137,7 +137,7 @@ void PrintSuffixesFactorsFromLynWithCorrespondingSuffix(const char * const word,
 }
 
 
-void PrintAllFactorsNaive(const char *input_word, const unsigned long word_length) {
+void PrintAllFactorsNaive(const char * const input_word, const unsigned long word_length) {
     cout << "Naively computing all factors of all rotations, with repetition:" << endl;
     char* rotation = new char[word_length+1];
     for (unsigned long i = 0; i < word_length; ++i) {

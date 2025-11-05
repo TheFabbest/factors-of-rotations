@@ -16,9 +16,6 @@
 using namespace std;
 
 int main() {
-    testRandomEdgeChars(100);
-    return 0;
-
     const char word[] = "ABABBABABBABAC";
     const unsigned long word_length = (sizeof(word) / sizeof(char)) - 1;
     

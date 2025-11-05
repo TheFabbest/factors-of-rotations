@@ -46,11 +46,8 @@ void testForEachWordOfLength(const unsigned long length, const function<void (ch
     word[length] = '\0';
     
     int limit = pow(length, length);
-    int print_step = pow(length, length-1);
-    print_step=1;
     for (int i = 0; i < limit; ++i)
     {
-        if (i % print_step == 0) cout << word << endl;
         func(word, length);
         int j = length-1;
         while(true) {

@@ -1046,6 +1046,8 @@ void optimalSuffixArray_recursive(const unsigned long *const input, unsigned lon
     // step 4 (no need to adapt the heap sort for L-type suffixes, it works as is)
     heapSortReducedProblem(SA, length, nS);
 
+    optimalSuffixArray_recursive(SA, SA + length - nS, nS);
+
     // step 5
     RestoreFromRecursion(input, length, SA, nS, usingLType);
 

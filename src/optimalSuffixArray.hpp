@@ -445,7 +445,6 @@ void initializeSA(const unsigned long *const input, unsigned long * const SA, co
 {
     // we scan T from right to left
     bool nextIsL = false;
-    unsigned long met = 0;
     for (unsigned long i = 0; i < length; ++i)
     {
         unsigned long index = length - i - 1;

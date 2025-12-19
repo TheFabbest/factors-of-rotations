@@ -78,7 +78,7 @@ void testRandomEdgeChars(const unsigned long SIZE){
     unsigned long* const SA_optimal = new unsigned long [SIZE];
     optimalSuffixArray(input_as_long, SA_optimal, SIZE);
     
-    const unsigned long * const suffix_array_SAIS = SAIS(word, SIZE, MAX_CH - MIN_CH + 1) + 1;
+    const unsigned long * const suffix_array_SAIS = buildSuffixArray(word, SIZE);
     
     // look for differences
     for (unsigned long i = 0; i < SIZE; ++i) {
@@ -94,7 +94,7 @@ void testRandomEdgeChars(const unsigned long SIZE){
     delete[] word;
     delete[] input_as_long;
     delete[] SA_optimal;
-    delete[] (suffix_array_SAIS - 1);
+    delete[] suffix_array_SAIS;
 }
 
 void testOneRandom(const unsigned long SIZE){
@@ -394,6 +394,7 @@ void testRandom() {
 
     for (int i = 0; i < 200; ++i) {
         testOneRandom(100001+i);
+        testRandomEdgeChars(100001+i);
     }
 }
 

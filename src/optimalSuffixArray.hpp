@@ -14,15 +14,10 @@ using namespace std;
 #define R2 -5UL
 #define MAX_CHAR -6UL
 
-constexpr unsigned long MSB = 1UL << (std::numeric_limits<unsigned long>::digits - 1);
+constexpr unsigned long MSB = 1UL << (numeric_limits<unsigned long>::digits - 1);
 
 
 // ----- auxiliary functions
-
-inline void pause()
-{
-    // cin.get();
-}
 
 void char_to_ulong_array(const char *const input_chars, unsigned long *const output, const unsigned long length)
 {
@@ -59,8 +54,8 @@ unsigned long getS_SubstringEnd(const unsigned long *const input, const unsigned
     {
         --k;
     }
-    ++k;
-    return k;
+    
+    return k+1;
 }
 
 // assumed
@@ -82,8 +77,7 @@ unsigned long getL_SubstringEnd(const unsigned long *const input, const unsigned
         --k;
     }
 
-    ++k;
-    return k;
+    return k+1;
 }
 
 int compare_substrings(const unsigned long *const input, unsigned long offsetA, unsigned long offsetB, const unsigned long length, const bool usingLType)
@@ -203,14 +197,14 @@ unsigned long custom_binary_search(const unsigned long *const input, const unsig
     unsigned long left = 0;
     unsigned long right = length - 1;
 
-    auto is_valid = [array, length, usingLType](unsigned long index)
+    const auto is_valid = [array, length, usingLType](unsigned long index)
     { return array[index] < length && (usingLType || index == 0 || array[index - 1] != BH) && (!usingLType || index == length - 1 || array[index + 1] != BH); };
 
     while (right > left)
     {
         const unsigned long mid = left + ((right - left) / 2);
         unsigned long checking = mid;
-        while (checking > left && !is_valid(checking))
+        while (checking > left && !is_valid(checking)) // 3 iterations at most
         {
             --checking;
         }
@@ -234,17 +228,18 @@ unsigned long custom_binary_search_last(const unsigned long *const input, const 
     unsigned long left = 0;
     unsigned long right = length - 1;
 
-    auto is_valid = [array, length](const unsigned long index)
+    const auto is_valid = [array, length](const unsigned long index)
     { return (array[index] < length) && (index == length - 1 || array[index + 1] != BH); };
 
     while (right > left)
     {
         const unsigned long mid = left + (right - left) / 2 + ((right - left) % 2);
         unsigned long checking = mid;
-        while (checking < right && !is_valid(checking))
+        while (checking < right && !is_valid(checking)) // 3 iterations at most
         {
             ++checking;
         }
+
         if (is_valid(checking) && input[array[checking]] <= value)
         {
             left = checking;
@@ -307,12 +302,10 @@ void mergeSort_Substrings(const unsigned long *const input, const unsigned long 
 {
     // merge sort SA[nS, length-1] using SA[0, nS-1] as the auxiliary array, thus O(1) space
 
-    // stable_sort(SA+length-nS, SA+length, [input, length, nS, usingLType](const unsigned long &a, const unsigned long &b) {
-    //                        return compare_substrings(input, a, b, length, usingLType) < 0;
-    //                    });
-
-    unsigned long * const auxiliary = SA;
-    unsigned long * const array = SA + length - nS;
+    const auto compare = [input, length, usingLType](const unsigned long &a, const unsigned long &b)
+    {
+        return compare_substrings(input, a, b, length, usingLType) < 0;
+    };
 
     unsigned long step = 1;
     while (step < length)
@@ -321,12 +314,8 @@ void mergeSort_Substrings(const unsigned long *const input, const unsigned long 
         {
             const unsigned long mid = i + step;
             const unsigned long end = min(i + step * 2, length);
-            merge(SA + i, SA + mid, SA + mid, SA + end, SA,
-                  [input, length, usingLType](const unsigned long &a, const unsigned long &b)
-                  {
-                      return compare_substrings(input, a, b, length, usingLType) < 0;
-                  });
-            move(SA, SA + end - i, SA + i);
+            merge(SA + i, SA + mid, SA + mid, SA + end, SA, compare);
+            move(SA, SA + end - i, SA + i); // inefficient but fidelity to the paper
         }
         step *= 2;
     }
@@ -415,11 +404,10 @@ void preprocess(const unsigned long *const input, unsigned long * const SA, cons
 
     // Then, we sort SA[0 ... n − 1] (the sorting key of SA[i] is T [SA[i]] i.e., the ﬁrst character of suf(SA[i]))
     //  using the mergesort, with the merging step implemented by the stable, in-place, linear time merging algorithm
-
-    // stable_sort(SA, SA + length,
-    //     [input](const unsigned long a, const unsigned long b) {
-    //         return input[a] < input[b];
-    //     });
+    const auto compare = [input](const unsigned long a, const unsigned long b)
+    {
+        return input[a] < input[b];
+    };
 
     unsigned long step = 1;
     while (step < length)
@@ -428,11 +416,7 @@ void preprocess(const unsigned long *const input, unsigned long * const SA, cons
         {
             const unsigned long mid = i + step;
             const unsigned long end = min(i + step * 2, length);
-            inplace_merge(SA + i, SA + mid, SA + end,
-                          [input](const unsigned long a, const unsigned long b)
-                          {
-                              return input[a] < input[b];
-                          });
+            inplace_merge(SA + i, SA + mid, SA + end, compare);
         }
         step *= 2;
     }
@@ -456,7 +440,7 @@ void initializeSA(const unsigned long *const input, unsigned long * const SA, co
             // Let l denote the head of bucket T [i ] in SA (i.e. l is the smallest index in SA such that T [SA[l]] = T [i])
             //  We can find l by searching T [i ] in SA (the search key for SA[i ] is T [SA[i ]]) using binary search.
             unsigned long l;
-            unsigned long first = custom_binary_search(input, SA, length, input[index], usingLType);
+            const unsigned long first = custom_binary_search(input, SA, length, input[index], usingLType);
 
             if (usingLType)
             {
@@ -578,7 +562,7 @@ void reset_case4_caches() {
     case4_S_cached_l = ULONG_MAX;
 }
 
-void sortS_body(const unsigned long *const input, unsigned long *const SA, const unsigned long length, const unsigned long j)
+inline void sortS_body(const unsigned long *const input, unsigned long *const SA, const unsigned long length, const unsigned long j)
 {
 
     // skip L type suffixes, this does not cover case 4 (but is always true for case 4)
@@ -676,7 +660,7 @@ void sortS_body(const unsigned long *const input, unsigned long *const SA, const
     }
 }
 
-void sortL_body(const unsigned long *const input, unsigned long *const SA, const unsigned long length, const unsigned long j)
+inline void sortL_body(const unsigned long *const input, unsigned long *const SA, const unsigned long length, const unsigned long j)
 {
     // skip S type suffixes, this does not cover case 4 (but is always true for case 4)
     if (j != length - 1 && input[j] < input[j + 1])
@@ -1045,6 +1029,7 @@ void optimalSuffixArray_recursive(const unsigned long *const input, unsigned lon
     // step 4 (no need to adapt the heap sort for L-type suffixes, it works as is)
     heapSortReducedProblem(SA, length, nS);
 
+    // recursion
     optimalSuffixArray_recursive(SA, SA + length - nS, nS);
 
     // step 5

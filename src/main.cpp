@@ -1,6 +1,6 @@
 #include <iostream>
 #include "utils.hpp"
-#include "test.hpp"
+#include "tests.hpp"
 using namespace std;
 
 void showTrees(const char* input_word, const unsigned long word_length) {
@@ -39,12 +39,36 @@ void showTrees(const char* input_word, const unsigned long word_length) {
     cout << endl;
 }
 
-int main() {
-    const char word[] = "BABBABAABBAABABABAABBAABAAABABABAABBAAABAAABABABAABBAAABAAABABABAABAAABAAABABABAAABAAABABAAABA";
-    const unsigned long word_length = (sizeof(word) / sizeof(char)) - 1;
-    
-    testRandom();
-    executionTimeOptimalSuffixArray(100000, 100);
+void help() {
+    cout << "Usage: ./program conjugatefactors <word>" << endl;
+    cout << "Example: ./program conjugatefactors BANANA" << endl;
+}
+
+int main(int argc, char** argv) {
+
+    if (argc <= 1) {
+        help();
+        return 0;
+    }
+
+    const char* const command = argv[1];
+    const string cmd_str(command);
+
+    const char* const parameter = (argc > 2) ? argv[2] : "";
+    const unsigned long word_length = strlen(parameter);
+
+    if (cmd_str == "conjugatefactors") {
+        PrintAllFactors(parameter, word_length);
+        return 0;
+    }
+    else if (cmd_str == "showtrees") {
+        showTrees(parameter, word_length);
+        return 0;
+    }
+    else if (cmd_str == "test") {
+        cout << "Running all tests..." << endl;
+        testAll();
+    }
 
     cout << endl << "Done." << endl;
     return 0;

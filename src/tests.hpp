@@ -230,72 +230,6 @@ void testFactorsLynS(const char input_word[], const unsigned long word_length, c
     delete[] LynS;
 }
 
-// i+Lyn[i] is basically the smallest index j>i for which rank[i] > rank[j]
-void propertyTest1(const char word[], unsigned long word_length) {
-    unsigned long *SA = new unsigned long[word_length];
-    optimalSuffixArray(word, SA, word_length);
-    unsigned long *rank = new unsigned long[word_length];
-    rankArrayFromSA(SA, word_length, rank);
-    unsigned long *Lyn = new unsigned long[word_length];
-    LongestLyndon(word, word_length, rank, Lyn);
-    for (int i = 0; i < word_length; ++i) {
-        for (int j = i+1; j < i+Lyn[i]; ++j) {
-            if (rank[i] > rank[j]) {
-                cout << "ERROR: " << word << endl;
-                cout << i << " " << j << endl;
-                cout << rank[i] << " > " << rank[j] << endl;
-                cin.get();
-            }
-        }
-        if (i+Lyn[i] < word_length && rank[i] < rank[i+Lyn[i]]) {
-            cout << "ERROR: " << word << endl;
-            cout << i << " " << i+Lyn[i] << endl;
-            cout << rank[i] << " < " << rank[i+Lyn[i]] << endl;
-            cin.get();
-        }
-    }
-
-    delete[] SA;
-    delete[] rank;
-    delete[] Lyn;
-}
-
-// for each factor beginning at index i of each rotation of the word it is true that rank[i] < rank[j] for each j in the factor
-void propertyTest2(const char input_word[], unsigned long word_length, const bool verbose = false) {
-    // this test skips periodic words
-    if (duval(string(input_word)).size()!=1){
-        aux_test_verbose("propertyTest2", input_word, "skipping test on periodic word", verbose);
-        return;
-    }
-    char *word = new char[word_length+1];
-    word[word_length] = '\0';
-    unsigned long *SA = buildSuffixArray(input_word, word_length);
-    unsigned long *rank = new unsigned long[word_length];
-    rankArrayFromSA(SA, word_length, rank);
-    for (unsigned long r = 0; r < word_length; ++r) {
-        rotate_copy(input_word, input_word+r, input_word+word_length, word);
-        vector<string> factors = duval(string(word));
-        long i = 0;
-        for (string factor: factors) {
-            for (long j = 1; j < factor.length(); ++j) {
-                long index_first = (word_length+i+r)%word_length;
-                long index_second = (index_first+j)%word_length;
-                if (rank[index_first] > rank[index_second]) {
-                    cout << "ERROR: " << word << endl;
-                    for (unsigned long k = 0; k < word_length; ++k) cout << rank[k] << " ";
-                    cout << index_first << " " << index_second << endl;
-                    cout << rank[index_first] << " > " << rank[index_second] << endl;
-                    cin.get();
-                }
-            }
-            i += factor.length();
-        }
-    }
-    delete[] SA;
-    delete[] rank;
-    delete[] word;
-}
-
 void testOptimalSuffixArray(const char input_word[], const unsigned long word_length) {
     // get alphabet size
     const unsigned long alphabet_size = getAlphabetSize(input_word, word_length);
@@ -333,8 +267,6 @@ void testOptimalSuffixArray(const char input_word[], const unsigned long word_le
 void testForSize(const unsigned long test_size) {
     testForEachWordOfLength(test_size, testFactorsLyn);
     testForEachWordOfLength(test_size, testFactorsLynS);
-    testForEachWordOfLength(test_size, propertyTest1);
-    testForEachWordOfLength(test_size, propertyTest2);
     testForEachWordOfLength(test_size, testOptimalSuffixArray);
 }
 

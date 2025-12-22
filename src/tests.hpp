@@ -7,14 +7,6 @@
 #include "utils.hpp"
 #include "naiveSuffix.hpp"
 
-void aux_PrintArray(const unsigned long *array, const unsigned long length, const string array_name) {
-    cout << array_name << ": ";
-    for (unsigned long i = 0; i < length; ++i) {
-        cout << array[i] << " ";
-    }
-    cout << endl;
-}
-
 void aux_test_verbose(const char * const testName, const char * const input_word, const char * const message, const bool do_print = false) {
     if (do_print) {
         cout << testName << " [" << input_word << "] " << message << endl;
@@ -231,8 +223,6 @@ void testFactorsLynS(const char input_word[], const unsigned long word_length, c
 }
 
 void testOptimalSuffixArray(const char input_word[], const unsigned long word_length) {
-    // get alphabet size
-    const unsigned long alphabet_size = getAlphabetSize(input_word, word_length);
 
     // calculate suffix array naively
     unsigned long *SA_optimal = new unsigned long[word_length];

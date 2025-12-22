@@ -14,22 +14,13 @@
 #include "computeStructures.hpp"
 using namespace std;
 
-unsigned long getAlphabetSize(const char * const string, const unsigned long length) {
-    char max_char = string[0];
-    char min_char = string[0];
+void aux_PrintArray(const unsigned long * const array, const unsigned long length, const string array_name) {
+    cout << array_name << ": ";
     for (unsigned long i = 0; i < length; ++i) {
-        if (string[i] > max_char) {
-            max_char = string[i];
-        }
-        if (string[i] < min_char) {
-            min_char = string[i];
-        }
+        if (i) cout << ", ";
+        cout << array[i];
     }
-    return max_char - min_char + 1;
-}
-
-char mapping(char c){
-    return c - 96;
+    cout << endl;
 }
 
 void separator() {

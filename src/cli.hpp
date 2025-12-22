@@ -34,12 +34,7 @@ void suffixArray(const char* const input_word, const bool verbose) {
     unsigned long* const SA = new unsigned long[word_length];
     optimalSuffixArray(input_word, SA, word_length);
 
-    cout << "Suffix Array: ";
-    for (unsigned long i = 0; i < word_length; ++i) {
-        if (i) cout << ", ";
-        cout << SA[i];
-    }
-    cout << endl;
+    aux_PrintArray(SA, word_length, "Suffix Array");
 
     delete[] SA;
 }
@@ -65,7 +60,7 @@ void showTrees(const char* const input_word, const bool verbose) {
     unsigned long *rank = new unsigned long[word_length];
     unsigned long *SA = new unsigned long[word_length];
     Node** roots = new Node* [word_length];
-    
+
     optimalSuffixArray(word, SA, word_length);
     rankArrayFromSA(SA, word_length, rank);
     LyndonSuffixTable(word, word_length, LynS);

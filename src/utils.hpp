@@ -70,17 +70,17 @@ string_view GetLastFactorOfSuffix(const char* const word, unsigned long suffix_s
 }
 
 void PrintPrefixesFactorsFromLynS(const char* const word, const unsigned long word_length, const unsigned long* const LynS) {
-    cout << "All factors that appear in prefixes, from LynS: " << endl;
     for (unsigned long i = 0; i < word_length-1; ++i) {
-        cout << GetLastFactorOfPrefix(word, i+1, LynS) << ", ";
+        if (i) cout << ", ";
+        cout << GetLastFactorOfPrefix(word, i+1, LynS);
     }
     cout << endl;
 }
 
 void PrintSuffixesFactorsFromLyn(const char* const word, const unsigned long word_length, const unsigned long* const Lyn) {
-    cout << "All factors that appear in suffixes, from Lyn: " << endl;
     for (unsigned long i = word_length-1; i > 1; --i) {
-        cout << GetLastFactorOfSuffix(word, i, Lyn) << ", ";
+        if (i < word_length-1) cout << ", ";
+        cout << GetLastFactorOfSuffix(word, i, Lyn);
     }
     cout << endl;
 }
@@ -154,7 +154,7 @@ void PrintAllFactorsNaive(const char * const input_word, const unsigned long wor
 
 
 // this function shows what we implemented, it is just a proof of concept
-void PrintAllFactors(const char * const input_word, const unsigned long word_length) {
+void PrintAllFactors(const char * const input_word, const unsigned long word_length, const bool verbose) {
     // allocate memory
     char* word = new char[word_length+1];
 
@@ -162,6 +162,10 @@ void PrintAllFactors(const char * const input_word, const unsigned long word_len
     const unsigned long rot = least_rotation(input_word, word_length);
     rotate_copy(input_word, input_word+rot, input_word+word_length, word);
     word[word_length] = '\0';
+
+    if (verbose) {
+        cout << "Smallest rotation is at index " << rot << ": " << word << endl;
+    }
 
     // check if it's periodic
     const vector<string> factors = duval(string(word));
@@ -182,21 +186,29 @@ void PrintAllFactors(const char * const input_word, const unsigned long word_len
         unsigned long* const LynS = new unsigned long[word_length];
         LyndonSuffixTable(word, word_length, LynS);
 
-        separator();
-        
-        // print factors for each prefix
-        PrintPrefixesFactorsFromLynS(word, word_length, LynS);
+        if (verbose) {
+            separator();
+            
+            // print factors for each prefix
+            cout << "All factors that appear in prefixes, from LynS: " << endl;
+            PrintPrefixesFactorsFromLynS(word, word_length, LynS);
 
-        // print factors for each prefix, with corresponding prefix
-        PrintPrefixesFactorsFromLynSWithCorrespondingPrefix(word, word_length, LynS);
-        
-        separator();
+            // print factors for each prefix, with corresponding prefix
+            PrintPrefixesFactorsFromLynSWithCorrespondingPrefix(word, word_length, LynS);
+            
+            separator();
 
-        // print factors for each suffix
-        PrintSuffixesFactorsFromLyn(word, word_length, Lyn);
+            // print factors for each suffix
+            cout << "All factors that appear in suffixes, from Lyn: " << endl;
+            PrintSuffixesFactorsFromLyn(word, word_length, Lyn);
 
-        // print factors for each suffix, with corresponding suffix
-        PrintSuffixesFactorsFromLynWithCorrespondingSuffix(word, word_length, Lyn);
+            // print factors for each suffix, with corresponding suffix
+            PrintSuffixesFactorsFromLynWithCorrespondingSuffix(word, word_length, Lyn);
+        }
+        else {
+            PrintPrefixesFactorsFromLynS(word, word_length, LynS);
+            PrintSuffixesFactorsFromLyn(word, word_length, Lyn);
+        }
 
         delete[] SA;
         delete[] word;
@@ -214,7 +226,7 @@ void PrintAllFactors(const char * const input_word, const unsigned long word_len
         delete[] word;
 
         unsigned long first_factor_length = factors[0].length();
-        PrintAllFactors(factors[0].c_str(), first_factor_length);
+        PrintAllFactors(factors[0].c_str(), first_factor_length, verbose);
     }
 }
 

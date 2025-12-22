@@ -1,8 +1,6 @@
 #ifndef COMPUTE_STRUCTURES_HPP
 #define COMPUTE_STRUCTURES_HPP
 
-// left-lyndon-tree.pdf
-// algorithm LyndonSuffixT
 void LyndonSuffixTable(const char* const y, const unsigned long n, unsigned long* const LynS) {
     LynS[0] = 1;
     unsigned long per = 1;
@@ -44,7 +42,7 @@ void ComputeNNS(const char* const word, const unsigned long length, unsigned lon
     }
 }
 
-void rankArrayFromSA(const unsigned long * SA, const unsigned long n, unsigned long * const rank) {
+void rankArrayFromSA(const unsigned long * const SA, const unsigned long n, unsigned long * const rank) {
     for (unsigned long i = 0; i < n; ++i){
         rank[SA[i]] = i;
     }

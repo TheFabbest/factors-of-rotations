@@ -4,7 +4,6 @@
 #include <functional>
 #include <math.h>
 #include <chrono>
-#include "SAIS.hpp"
 #include "utils.hpp"
 #include "naiveSuffix.hpp"
 
@@ -78,15 +77,15 @@ void testRandomEdgeChars(const unsigned long SIZE){
     unsigned long* const SA_optimal = new unsigned long [SIZE];
     optimalSuffixArray(input_as_long, SA_optimal, SIZE);
     
-    const unsigned long * const suffix_array_SAIS = buildSuffixArray(word, SIZE);
+    const unsigned long * const suffix_array_naive = buildSuffixArray(word, SIZE);
     
     // look for differences
     for (unsigned long i = 0; i < SIZE; ++i) {
-        if (SA_optimal[i] != suffix_array_SAIS[i]) {
+        if (SA_optimal[i] != suffix_array_naive[i]) {
             cout << "ERROR for string " << word << endl;
-            cout << "ERROR at " << i << " - SA_optimal was '" << SA_optimal[i] << "' while SA_SAIS was '" << suffix_array_SAIS[i] << "'" << endl;
+            cout << "ERROR at " << i << " - SA_optimal was '" << SA_optimal[i] << "' while SA_naive was '" << suffix_array_naive[i] << "'" << endl;
             aux_PrintArray(SA_optimal, SIZE, "SA_optimal");
-            aux_PrintArray(suffix_array_SAIS, SIZE, "SA_SAIS");
+            aux_PrintArray(suffix_array_naive, SIZE, "SA_naive");
             cin.get();
         }
     }
@@ -94,7 +93,7 @@ void testRandomEdgeChars(const unsigned long SIZE){
     delete[] word;
     delete[] input_as_long;
     delete[] SA_optimal;
-    delete[] suffix_array_SAIS;
+    delete[] suffix_array_naive;
 }
 
 void testOneRandom(const unsigned long SIZE){
@@ -270,7 +269,7 @@ void propertyTest2(const char input_word[], unsigned long word_length, const boo
     }
     char *word = new char[word_length+1];
     word[word_length] = '\0';
-    unsigned long *SA = SAIS(input_word, word_length, getAlphabetSize(word,word_length))+1;
+    unsigned long *SA = buildSuffixArray(input_word, word_length);
     unsigned long *rank = new unsigned long[word_length];
     rankArrayFromSA(SA, word_length, rank);
     for (unsigned long r = 0; r < word_length; ++r) {
@@ -292,7 +291,7 @@ void propertyTest2(const char input_word[], unsigned long word_length, const boo
             i += factor.length();
         }
     }
-    delete[] (SA-1);
+    delete[] SA;
     delete[] rank;
     delete[] word;
 }
@@ -377,6 +376,8 @@ void testAll() {
     const unsigned long EXHAUSTIVE_LIMIT = 5;
     const unsigned long NUMBER_OF_TESTS_FOR_EDGE_CASES = 200;
     const unsigned long TEST_SIZE_FOR_EDGE_CASES = 100000;
+    
+    cout << "Running all tests..." << endl;
     
     for (int size = 1; size <= EXHAUSTIVE_LIMIT; ++size) {
         cout << "Performing exhaustive test on all words of size " << size << endl;

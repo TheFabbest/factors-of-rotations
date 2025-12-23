@@ -6,7 +6,7 @@
 using namespace std;
 
 struct Config {
-    bool verbose = false;
+    bool verbose = true;
     bool input_is_file = false;
     std::string input;
     std::string command;
@@ -19,8 +19,11 @@ int main(int argc, char** argv) {
     Config config;
     
     // Global flags
-    app.add_flag("-v,--verbose", config.verbose, "Verbose output");
-    app.fallthrough();
+    bool quiet = false;
+    app.add_flag("-q,--quiet", quiet, "Suppress verbose output");
+    if (quiet) {
+        config.verbose = false;
+    }
 
     app.description("This program is designed by Fabrizio Apuzzo as part of his Bachelor's Thesis at University of Naples Federico II.\n"
         "Clarity, simplicity and fidelity were prioritized over performance.");

@@ -5,21 +5,6 @@
 #include "utils.hpp"
 using namespace std;
 
-void help() {
-    cout << "Usage: ./program command [word] [-v|--verbose]" << endl;
-    cout << "Commands:" << endl;
-    cout << "  help                    : Show this help message." << endl;
-    cout << "  conjugatefactors <word> : Print all conjugate factors of the given word." << endl;
-    cout << "  showtrees <word>        : Show the Left and Right Lyndon Trees of the given word." << endl;
-    cout << "  suffixarray <word>      : Compute and display the suffix array of the given word." << endl;
-    cout << "  test                    : Run all tests." << endl;
-    cout << "Flags:" << endl;
-    cout << "  -v, --verbose          : Enable verbose output." << endl;
-    cout << "Unknown flags will be ignored with a warning." << endl;
-    cout << "Malformed commands will show this help message if required parameters are missing or wrong, unneeded parameters will be ignored with no warning." << endl;
-    cout << "This program is designed by Fabrizio Apuzzo as part of its Bachelor's Thesis at University of Naples Federico II. Clarity, simplicity and fidelity were prioritized over performance." << endl;
-}
-
 void suffixArray(const char* const input_word, const unsigned long word_length, const bool verbose) {
     if (word_length == 0) {
         cout << "Please provide a non-empty word." << endl;
@@ -33,7 +18,7 @@ void suffixArray(const char* const input_word, const unsigned long word_length, 
     unsigned long* const SA = new unsigned long[word_length];
     optimalSuffixArray(input_word, SA, word_length);
 
-    aux_PrintArray(SA, word_length, "Suffix Array");
+    aux_PrintArray(SA, word_length, "");
 
     delete[] SA;
 }

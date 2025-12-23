@@ -22,18 +22,23 @@ int main(int argc, char** argv) {
     app.add_flag("-v,--verbose", config.verbose, "Verbose output");
     app.fallthrough();
 
+    app.description("This program is designed by Fabrizio Apuzzo as part of his Bachelor's Thesis at University of Naples Federico II.\n"
+        "Clarity, simplicity and fidelity were prioritized over performance.");
+
     // Subcommands
-    auto* conjugate = app.add_subcommand("conjugatefactors", "Find conjugate factors");
-    conjugate->add_option("word", config.input, "Input word or filename")->required();
+    auto* conjugate = app.add_subcommand("conjugatefactors", "Find the factors of all conjugates of the input word");
+    conjugate->add_option("word", config.input, "Input word")->required();
     
-    auto* trees = app.add_subcommand("showtrees", "Show trees");
-    trees->add_option("input", config.input, "Input string");
+    auto* trees = app.add_subcommand("showtrees", "Show right and left Lyndon trees of the input word");
+    trees->add_option("input", config.input, "Input word");
     
-    auto* suffix = app.add_subcommand("suffixarray", "Build suffix array");
-    suffix->add_option("input", config.input, "Input string");
+    auto* suffix = app.add_subcommand("suffixarray", "Build suffix array of the input word or file");
+    suffix->add_option("input", config.input, "Input word or filename")->required();
     suffix->add_flag("--input-file", config.input_is_file, "Treat input as filename");
-    suffix->add_option("--bytes-per-char", config.bytes_per_char, "Bytes per character");
-    suffix->add_option("--max-chars", config.max_chars, "Max characters to read");
+
+    // these options are only relevant if input is a file
+    suffix->add_option("--bytes-per-char", config.bytes_per_char, "Bytes per character in file (upper bound depends on architecture)")->check(CLI::Range(1ul, sizeof(unsigned long)));
+    suffix->add_option("--max-chars", config.max_chars, "Max characters to read")->check(CLI::Range(0ul, numeric_limits<unsigned long>::max()));
     
     auto* test = app.add_subcommand("test", "Run tests");
     

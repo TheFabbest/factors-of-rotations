@@ -15,7 +15,7 @@
 using namespace std;
 
 void aux_PrintArray(const unsigned long * const array, const unsigned long length, const string array_name) {
-    cout << array_name << ": ";
+    if (!array_name.empty()) cout << array_name << ": ";
     for (unsigned long i = 0; i < length; ++i) {
         if (i) cout << ", ";
         cout << array[i];
@@ -50,14 +50,14 @@ char* readFile(const string filename, const unsigned long max_size, unsigned lon
 
 unsigned long* readFile(const string filename, const unsigned long bytes_per_char, const unsigned long max_chars, unsigned long& size) {
 
-    std::ifstream file(filename, std::ios::binary | std::ios::ate);
+    ifstream file(filename, ios::binary | ios::ate);
     if (!file) {
-        std::cerr << "Failed to open file.\n";
+        cerr << "Failed to open file.\n";
         return nullptr;
     }
     size = file.tellg() / bytes_per_char;
     if (size > max_chars && max_chars > 0) size = max_chars;
-    file.seekg(0, std::ios::beg);
+    file.seekg(0, ios::beg);
     unsigned long *output_buffer = new unsigned long[size * sizeof(unsigned long)];
     for (unsigned long i = 0; i < size; ++i) {
         unsigned long char_value = 0;
@@ -86,9 +86,9 @@ void PrintPrefixesFactorsFromLynS(const char* const word, const unsigned long wo
 }
 
 void PrintSuffixesFactorsFromLyn(const char* const word, const unsigned long word_length, const unsigned long* const Lyn) {
-    for (unsigned long i = word_length-1; i > 1; --i) {
-        if (i < word_length-1) cout << ", ";
-        cout << GetLastFactorOfSuffix(word, i, Lyn);
+    for (unsigned long i = word_length; i > 1; --i) {
+        if (i < word_length) cout << ", ";
+        cout << GetLastFactorOfSuffix(word, i-1, Lyn);
     }
     cout << endl;
 }
@@ -173,7 +173,7 @@ void PrintAllFactors(const char * const input_word, const bool verbose) {
     word[word_length] = '\0';
 
     if (verbose) {
-        cout << "Smallest rotation is at index " << rot << ": " << word << endl;
+        cout << "Working on smallest conjugate at index " << rot << ": " << word << endl;
     }
 
     // check if it's periodic

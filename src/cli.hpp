@@ -20,8 +20,7 @@ void help() {
     cout << "This program is designed by Fabrizio Apuzzo as part of its Bachelor's Thesis at University of Naples Federico II. Clarity, simplicity and fidelity were prioritized over performance." << endl;
 }
 
-void suffixArray(const char* const input_word, const bool verbose) {
-    const unsigned long word_length = strlen(input_word);
+void suffixArray(const char* const input_word, const unsigned long word_length, const bool verbose) {
     if (word_length == 0) {
         cout << "Please provide a non-empty word." << endl;
         return;
@@ -33,6 +32,24 @@ void suffixArray(const char* const input_word, const bool verbose) {
 
     unsigned long* const SA = new unsigned long[word_length];
     optimalSuffixArray(input_word, SA, word_length);
+
+    aux_PrintArray(SA, word_length, "Suffix Array");
+
+    delete[] SA;
+}
+
+void suffixArray(const unsigned long* const input_chars, const unsigned long word_length, const bool verbose) {
+    if (word_length == 0) {
+        cout << "Please provide a non-empty word." << endl;
+        return;
+    }
+
+    if (verbose) {
+        aux_PrintArray(input_chars, word_length, "Input array");
+    }
+
+    unsigned long* const SA = new unsigned long[word_length];
+    optimalSuffixArray((unsigned long* const) input_chars, SA, word_length);
 
     aux_PrintArray(SA, word_length, "Suffix Array");
 

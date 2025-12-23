@@ -27,8 +27,7 @@ void separator() {
     cout << "-----------------------------------" << endl;
 }
 
-char* readFile(const char* filename, unsigned long &size){
-    static const unsigned long MAX = 15;
+char* readFile(const string filename, const unsigned long max_size, unsigned long& size) {
 
     std::ifstream file(filename, std::ios::binary | std::ios::ate);
     if (!file) {
@@ -36,18 +35,36 @@ char* readFile(const char* filename, unsigned long &size){
         return nullptr;
     }
 
-    size = file.tellg();
-    if (size > MAX) size = MAX;
+    size = file.tellg() / sizeof(char);
+    if (size > max_size) size = max_size;
     file.seekg(0, std::ios::beg);
-
-    char* buffer = new char[size + 1]; // +1 for null terminator
-    if (!file.read(buffer, size)) {
+    
+    char *output_buffer = new char[(size * sizeof(char)) + 1];
+    if (!file.read(output_buffer, size * sizeof(char))) {
         std::cerr << "Failed to read file.\n";
-        delete[] buffer;
         return nullptr;
     }
-    buffer[size] = '\0'; // Null-terminate the string
-    return buffer;
+    output_buffer[size * sizeof(char)] = '\0'; // Null-terminate the string
+    return output_buffer;
+}
+
+unsigned long* readFile(const string filename, const unsigned long bytes_per_char, const unsigned long max_chars, unsigned long& size) {
+
+    std::ifstream file(filename, std::ios::binary | std::ios::ate);
+    if (!file) {
+        std::cerr << "Failed to open file.\n";
+        return nullptr;
+    }
+    size = file.tellg() / bytes_per_char;
+    if (size > max_chars && max_chars > 0) size = max_chars;
+    file.seekg(0, std::ios::beg);
+    unsigned long *output_buffer = new unsigned long[size * sizeof(unsigned long)];
+    for (unsigned long i = 0; i < size; ++i) {
+        unsigned long char_value = 0;
+        file.read(reinterpret_cast<char*>(&char_value), bytes_per_char);
+        output_buffer[i] = char_value;
+    }
+    return output_buffer;
 }
 
 string_view GetLastFactorOfPrefix(const char* const word, unsigned long prefix_length, const unsigned long* const LynS) {
@@ -145,8 +162,9 @@ void PrintAllFactorsNaive(const char * const input_word, const unsigned long wor
 
 
 // this function shows what we implemented, it is just a proof of concept
-void PrintAllFactors(const char * const input_word, const unsigned long word_length, const bool verbose) {
+void PrintAllFactors(const char * const input_word, const bool verbose) {
     // allocate memory
+    const unsigned long word_length = strlen(input_word);
     char* word = new char[word_length+1];
 
     // find smallest rotation
@@ -217,7 +235,7 @@ void PrintAllFactors(const char * const input_word, const unsigned long word_len
         delete[] word;
 
         unsigned long first_factor_length = factors[0].length();
-        PrintAllFactors(factors[0].c_str(), first_factor_length, verbose);
+        PrintAllFactors(factors[0].c_str(), verbose);
     }
 }
 

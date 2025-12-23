@@ -2,65 +2,76 @@
 #include "utils.hpp"
 #include "tests.hpp"
 #include "cli.hpp"
+#include "CLI/CLI11.hpp"
 using namespace std;
 
-void handleFlags(int &argc, char** &argv, bool &verbose) {
-    for (int i = 1; i < argc; ++i) {
-        string arg = argv[i];
-        if (arg == "-v" || arg == "--verbose") {
-            verbose = true;
-            // Remove the flag from argv
-            for (int j = i; j < argc - 1; ++j) {
-                argv[j] = argv[j + 1];
-            }
-            --argc;
-            --i; // Adjust index after removal
-        }
-        else if (arg[0] == '-') {
-            cout << "ignoring unknown flag: " << arg << endl;
-        }
-    }
-}
+struct Config {
+    bool verbose = false;
+    bool input_is_file = false;
+    std::string input;
+    std::string command;
+    size_t bytes_per_char = 1;
+    size_t max_chars = 0; // 0 = unlimited
+};
 
 int main(int argc, char** argv) {
-    bool verbose = false;
+    CLI::App app{"String algorithm tool"};
+    Config config;
+    
+    // Global flags
+    app.add_flag("-v,--verbose", config.verbose, "Verbose output");
+    app.fallthrough();
 
-    handleFlags(argc, argv, verbose);
+    // Subcommands
+    auto* conjugate = app.add_subcommand("conjugatefactors", "Find conjugate factors");
+    conjugate->add_option("word", config.input, "Input word or filename")->required();
+    
+    auto* trees = app.add_subcommand("showtrees", "Show trees");
+    trees->add_option("input", config.input, "Input string");
+    
+    auto* suffix = app.add_subcommand("suffixarray", "Build suffix array");
+    suffix->add_option("input", config.input, "Input string");
+    suffix->add_flag("--input-file", config.input_is_file, "Treat input as filename");
+    suffix->add_option("--bytes-per-char", config.bytes_per_char, "Bytes per character");
+    suffix->add_option("--max-chars", config.max_chars, "Max characters to read");
+    
+    auto* test = app.add_subcommand("test", "Run tests");
+    
+    CLI11_PARSE(app, argc, argv);
+    
+    const char* const word = config.input.c_str();
+    const unsigned long length = config.input.length();
 
-    if (argc <= 1) {
-        help();
-        return 0;
+    // Execute based on subcommand
+    if (*conjugate) {
+        PrintAllFactors(word, config.verbose);
     }
-
-    const char* const command = argv[1];
-    const string cmd_str(command);
-
-    const char* const parameter = (argc > 2) ? argv[2] : "";
-
-    if (cmd_str == "conjugatefactors") {
-        const unsigned long word_length = strlen(parameter);
-        if (word_length == 0) {
-            cout << "Please provide a non-empty word." << endl;
-            return 1;
-        }
-        PrintAllFactors(parameter, word_length, verbose);
+    else if (*trees) {
+        showTrees(word, config.verbose);
     }
-    else if (cmd_str == "showtrees") {
-        showTrees(parameter, verbose);
-    }
-    else if (cmd_str == "test") {
+    else if (*test) {
         testAll();
     }
-    else if (cmd_str == "help") {
-        help();
+    else if (*suffix) {
+        if (config.input_is_file) {
+            unsigned long size;
+            unsigned long* file_content = readFile(config.input, config.bytes_per_char, config.max_chars, size);
+            if (file_content) {
+                if (config.bytes_per_char == sizeof(char)) {
+                    char* char_content = reinterpret_cast<char*>(file_content);
+                    suffixArray(char_content, size, config.verbose);
+                    delete[] char_content;
+                } else {
+                    suffixArray(file_content, size, config.verbose);
+                }
+                delete[] file_content;
+            }
+        } else {
+            suffixArray(word, length, config.verbose);
+        }
     }
-    else if (cmd_str == "suffixarray") {
-        suffixArray(parameter, verbose);
-    }
-    else {
-        cout << "Unknown command: " << cmd_str << endl;
-        help();
-        return 1;
+    else if (app.get_subcommands().size() > 0 && *(app.get_subcommands()[0]) ) {
+        testAll();
     }
     return 0;
 }

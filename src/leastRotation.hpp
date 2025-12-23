@@ -2,7 +2,8 @@
 #define LEAST_ROTATION_HPP
 
 // booth's algorithm, see more efficient and O(1) space "Shiloach's Fast Canonization Algorithm"
-unsigned long least_rotation(const char* const word, const unsigned long length){
+template<typename T>
+unsigned long least_rotation(const T* const word, const unsigned long length){
     long *f = new long [2*length] {-1};
     unsigned long k = 0;
     for (unsigned long j = 1; j < 2*length; ++j)

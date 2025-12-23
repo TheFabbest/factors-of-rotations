@@ -96,7 +96,7 @@ void PrintSuffixesFactorsFromLyn(const char* const word, const unsigned long wor
 
 void PrintPrefixesFactorsFromLynSWithCorrespondingPrefix(const char * const word,
                                const unsigned long word_length,
-                               const unsigned long* LynS) {
+                               const unsigned long* const LynS) {
     cout << "Exact factorization of each prefix, from LynS: " << endl;
 
     for (unsigned long prefix_len = 1; prefix_len < word_length; ++prefix_len) {
@@ -121,7 +121,7 @@ void PrintPrefixesFactorsFromLynSWithCorrespondingPrefix(const char * const word
 
 void PrintSuffixesFactorsFromLynWithCorrespondingSuffix(const char * const word,
                                const unsigned long word_length,
-                               const unsigned long* Lyn) {
+                               const unsigned long* const Lyn) {
     cout << "Exact factorization of each suffix, from Lyn: " << endl;
 
     for (unsigned long suffix_start = 1; suffix_start < word_length; ++suffix_start) {
@@ -226,11 +226,7 @@ void PrintAllFactors(const char * const input_word, const bool verbose) {
         delete[] LynS;
     }
     else {
-        cout << endl << word << " is periodic and its factors are: ";
-        for (string f: factors) {
-            cout << f << ", ";
-        }
-        cout << endl;
+        if (verbose) cout << endl << word << " is periodic and its primitive root is: " << factors[0] << endl;
 
         delete[] word;
 

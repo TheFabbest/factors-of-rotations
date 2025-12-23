@@ -18,7 +18,7 @@ void suffixArray(const char* const input_word, const unsigned long word_length, 
     unsigned long* const SA = new unsigned long[word_length];
     optimalSuffixArray(input_word, SA, word_length);
 
-    aux_PrintArray(SA, word_length, "");
+    aux_PrintArray(SA, word_length);
 
     delete[] SA;
 }

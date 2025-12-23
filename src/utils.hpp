@@ -14,13 +14,18 @@
 #include "computeStructures.hpp"
 using namespace std;
 
-void aux_PrintArray(const unsigned long * const array, const unsigned long length, const string array_name) {
-    if (!array_name.empty()) cout << array_name << ": ";
+void aux_PrintArray(const unsigned long * const array, const unsigned long length)
+{
     for (unsigned long i = 0; i < length; ++i) {
         if (i) cout << ", ";
         cout << array[i];
     }
     cout << endl;
+}
+
+void aux_PrintArray(const unsigned long * const array, const unsigned long length, const string array_name) {
+    cout << array_name << ": ";
+    aux_PrintArray(array, length);
 }
 
 void separator() {

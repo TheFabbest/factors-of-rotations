@@ -3,6 +3,7 @@
 An efficient O(n) implementation of the algorithm from [Bijective BWT based Compression Schemes](https://doi.org/10.48550/arXiv.2406.16475) for computing all Lyndon factors of all cyclic rotations (conjugates) of a string.
 
 This program was developed by Fabrizio Apuzzo as part of his Bachelor's Thesis at University of Naples Federico II.
+See my thesis at https://github.com/TheFabbest/Lyndon-Factorization-of-Conjugates.
 
 ## What are Lyndon Factors?
 

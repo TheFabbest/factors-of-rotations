@@ -114,21 +114,6 @@ Performance optimizations are secondary to these goals, though the optimized bui
 - Make build system
 - CLI11 header library (included in project)
 
-## Project Structure
-
-```
-.
-├── src/
-│   ├── main.cpp       # Main program entry point
-│   ├── utils.hpp      # Utility functions
-│   ├── tests.hpp      # Test suite
-│   ├── cli.hpp        # CLI interface functions
-│   └── CLI/
-│       └── CLI11.hpp  # Command-line parsing library
-├── Makefile
-└── README.md
-```
-
 ## References
 
 This implementation is based on the algorithm presented in:
@@ -137,9 +122,8 @@ This implementation is based on the algorithm presented in:
 arXiv:2406.16475  
 https://doi.org/10.48550/arXiv.2406.16475
 
-## License
-
-[Add your license information here]
+My related thesis document can be found here:
+https://github.com/TheFabbest/Lyndon-Factorization-of-Conjugates
 
 ## Author
 
@@ -149,7 +133,7 @@ University of Naples Federico II
 
 ## Contributing
 
-[Add contribution guidelines if accepting contributions]
+Any suggestion, improvement, bug report, feature request, contribution, question, comment, or update is welcome.
 
 ## Citation
 

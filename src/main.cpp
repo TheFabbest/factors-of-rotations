@@ -20,13 +20,10 @@ int main(int argc, char** argv) {
     
     // Global flags
     bool quiet = false;
-    app.add_flag("-q,--quiet", quiet, "Suppress verbose output");
-    if (quiet) {
-        config.verbose = false;
-    }
+    app.add_flag("-q,--quiet", quiet, "Suppress verbose output for more concise, parseable output.");
 
     app.description("This program is designed by Fabrizio Apuzzo as part of his Bachelor's Thesis at University of Naples Federico II.\n"
-        "Clarity, simplicity and fidelity were prioritized over performance.");
+        "Clarity, simplicity and fidelity are our priorities. Any feedback is welcome.");
 
     // Subcommands
     auto* conjugate = app.add_subcommand("conjugatefactors", "Find the factors of all conjugates of the input word");
@@ -46,6 +43,9 @@ int main(int argc, char** argv) {
     auto* test = app.add_subcommand("test", "Run tests");
     
     CLI11_PARSE(app, argc, argv);
+    if (quiet) {
+        config.verbose = false;
+    }
     
     const char* const word = config.input.c_str();
     const unsigned long length = config.input.length();
@@ -65,13 +65,7 @@ int main(int argc, char** argv) {
             unsigned long size;
             unsigned long* file_content = readFile(config.input, config.bytes_per_char, config.max_chars, size);
             if (file_content) {
-                if (config.bytes_per_char == sizeof(char)) {
-                    char* char_content = reinterpret_cast<char*>(file_content);
-                    suffixArray(char_content, size, config.verbose);
-                    delete[] char_content;
-                } else {
-                    suffixArray(file_content, size, config.verbose);
-                }
+                suffixArray(file_content, size, config.verbose);
                 delete[] file_content;
             }
         } else {
